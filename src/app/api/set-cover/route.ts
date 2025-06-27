@@ -1,8 +1,10 @@
+// src/app/api/set-cover/route.ts
+
 import { google } from 'googleapis'
 import { getServerSession } from 'next-auth'
 import { NextResponse } from 'next/server'
-import { authOptions } from '../auth/[...nextauth]/route'
 import { revalidatePath } from 'next/cache'
+import { authOptions } from '../auth/[...nextauth]/route'
 
 export async function POST(request: Request) {
 	const session = await getServerSession(authOptions)
@@ -19,7 +21,6 @@ export async function POST(request: Request) {
 
 	const oauth2Client = new google.auth.OAuth2()
 	oauth2Client.setCredentials({ access_token: session.user.accessToken })
-
 	const drive = google.drive({ version: 'v3', auth: oauth2Client })
 
 	try {
@@ -39,13 +40,12 @@ export async function POST(request: Request) {
 
 		const fileRes = await drive.files.get({ fileId: fileId, fields: 'name' })
 		const originalName = fileRes.data.name
-
 		if (!originalName) throw new Error('Could not get file name')
 
 		const nameWithoutCover = originalName.replace(/_cover/g, '')
 		const extensionIndex = nameWithoutCover.lastIndexOf('.')
-
 		let coverName: string
+
 		if (extensionIndex !== -1) {
 			const name = nameWithoutCover.substring(0, extensionIndex)
 			const extension = nameWithoutCover.substring(extensionIndex)
@@ -60,6 +60,7 @@ export async function POST(request: Request) {
 		})
 
 		revalidatePath('/dashboard')
+		revalidatePath(`/album/${folderId}`)
 
 		return NextResponse.json({ success: true, newName: coverName })
 	} catch (error) {

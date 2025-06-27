@@ -18,6 +18,35 @@ interface Album {
 	name: string
 }
 
+async function setInitialCover(accessToken: string, folderId: string, fileId: string): Promise<{ newName: string }> {
+	const oauth2Client = new google.auth.OAuth2()
+	oauth2Client.setCredentials({ access_token: accessToken })
+	const drive = google.drive({ version: 'v3', auth: oauth2Client })
+
+	const fileRes = await drive.files.get({ fileId: fileId, fields: 'name' })
+	const originalName = fileRes.data.name
+	if (!originalName) throw new Error('Could not get file name')
+
+	const nameWithoutCover = originalName.replace(/_cover/g, '')
+	const extensionIndex = nameWithoutCover.lastIndexOf('.')
+	let coverName: string
+
+	if (extensionIndex !== -1) {
+		const name = nameWithoutCover.substring(0, extensionIndex)
+		const extension = nameWithoutCover.substring(extensionIndex)
+		coverName = `${name}_cover${extension}`
+	} else {
+		coverName = `${nameWithoutCover}_cover`
+	}
+
+	await drive.files.update({
+		fileId: fileId,
+		requestBody: { name: coverName },
+	})
+
+	return { newName: coverName }
+}
+
 async function getAlbumDetails(accessToken: string, albumId: string): Promise<Album> {
 	const oauth2Client = new google.auth.OAuth2()
 	oauth2Client.setCredentials({ access_token: accessToken })
@@ -47,10 +76,25 @@ export default async function AlbumPage({ params }: { params: { albumId: string 
 		redirect('/')
 	}
 
-	const [albumDetails, photos] = await Promise.all([
+	let [albumDetails, photos] = await Promise.all([
 		getAlbumDetails(session.user.accessToken, params.albumId),
 		getPhotos(session.user.accessToken, params.albumId),
 	])
+
+	const hasCover = photos.some(p => p.name.includes('_cover'))
+
+	if (!hasCover && photos.length > 0) {
+		try {
+			const result = await setInitialCover(session.user.accessToken, params.albumId, photos[0].id)
+
+			const photoToUpdate = photos.find(p => p.id === photos[0].id)
+			if (photoToUpdate) {
+				photoToUpdate.name = result.newName
+			}
+		} catch (error) {
+			console.error('Failed to auto-set cover on initial load:', error)
+		}
+	}
 
 	return (
 		<div className='min-h-screen bg-white'>

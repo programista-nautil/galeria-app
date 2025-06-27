@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
 
 interface Photo {
 	id: string
@@ -12,28 +13,41 @@ export function PhotoGrid({ photos, folderId }: { photos: Photo[]; folderId: str
 	const [isSettingCover, setIsSettingCover] = useState(false)
 	const [isLoading, setIsLoading] = useState<string | null>(null)
 
+	const initialCoverId = photos.find(p => p.name.includes('_cover'))?.id
+
+	const [currentCoverId, setCurrentCoverId] = useState<string | undefined>(initialCoverId)
+
+	useEffect(() => {
+		const cover = photos.find(p => p.name.includes('_cover'))
+		setCurrentCoverId(cover?.id)
+	}, [photos])
+
 	const handleSetCover = async (fileId: string) => {
+		const previousCoverId = currentCoverId
 		setIsLoading(fileId)
+		setCurrentCoverId(fileId)
+
 		try {
 			const response = await fetch('/api/set-cover', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ fileId, folderId }),
 			})
+
 			if (!response.ok) {
 				throw new Error('Failed to set cover')
 			}
 
+			toast.success(`Ustawiono nową okładkę dla albumu!`)
 			setIsSettingCover(false)
 		} catch (error) {
 			console.error(error)
-			alert('Nie udało się ustawić okładki.')
+			toast.error('Wystąpił błąd podczas ustawiania okładki.')
+			setCurrentCoverId(previousCoverId)
 		} finally {
 			setIsLoading(null)
 		}
 	}
-
-	const currentCover = photos.find(p => p.name.includes('_cover'))
 
 	return (
 		<div>
@@ -60,14 +74,18 @@ export function PhotoGrid({ photos, folderId }: { photos: Photo[]; folderId: str
 							<div className='absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity'>
 								<button
 									onClick={() => handleSetCover(photo.id)}
-									disabled={isLoading === photo.id}
-									className='px-3 py-1.5 bg-white text-slate-900 text-xs font-bold rounded-full disabled:opacity-50'>
-									{isLoading === photo.id ? 'Ustawianie...' : 'Ustaw jako okładkę'}
+									disabled={isLoading === photo.id || currentCoverId === photo.id}
+									className='px-3 py-1.5 bg-white text-slate-900 text-xs font-bold rounded-full disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 transition-transform'>
+									{isLoading === photo.id
+										? 'Ustawianie...'
+										: currentCoverId === photo.id
+										? 'To jest okładka'
+										: 'Ustaw jako okładkę'}
 								</button>
 							</div>
 						)}
-						{currentCover?.id === photo.id && (
-							<div className='absolute top-2 right-2 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full pointer-events-none'>
+						{currentCoverId === photo.id && (
+							<div className='absolute top-2 right-2 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full pointer-events-none shadow-lg'>
 								Okładka
 							</div>
 						)}
