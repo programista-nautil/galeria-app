@@ -15,29 +15,71 @@ interface Album {
 }
 
 async function getAlbums(accessToken: string): Promise<Album[]> {
-	const oauth2Client = new google.auth.OAuth2(
-		process.env.GOOGLE_CLIENT_ID,
-		process.env.GOOGLE_CLIENT_SECRET,
-		`${process.env.NEXTAUTH_URL}/api/auth/callback/google`
-	)
-
-	oauth2Client.setCredentials({
-		access_token: accessToken,
-	})
+	const oauth2Client = new google.auth.OAuth2(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET)
+	oauth2Client.setCredentials({ access_token: accessToken })
 
 	const drive = google.drive({ version: 'v3', auth: oauth2Client })
 
+	const parentFolderResponse = await drive.files.list({
+		q: "mimeType='application/vnd.google-apps.folder' and name='Galeria Zdjęć' and 'root' in parents and trashed=false",
+		fields: 'files(id)',
+		pageSize: 1,
+	})
+
+	const parentFolder = parentFolderResponse.data.files?.[0]
+
+	if (!parentFolder?.id) {
+		console.log("Folder 'Galeria Zdjęć' not found in the root directory.")
+		return []
+	}
+	const parentFolderId = parentFolder.id
+
 	const foldersResponse = await drive.files.list({
-		q: "mimeType='application/vnd.google-apps.folder' and trashed=false",
+		q: `'${parentFolderId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,
 		fields: 'files(id, name)',
-		orderBy: 'name',
+		orderBy: 'name desc',
 	})
 
 	const folders = foldersResponse.data.files
-	if (!folders) return []
+	if (!folders || folders.length === 0) return []
 
 	const albumsWithCovers = await Promise.all(
 		folders.map(async folder => {
+			let currentFolderName = folder.name!
+
+			const correctDateRegex = /^\d{4}-\d{2}-\d{2} /
+			const oldIncorrectDateRegex = /^\d{4}-\d{2}-\d{2} - /
+
+			if (correctDateRegex.test(currentFolderName)) {
+			} else if (oldIncorrectDateRegex.test(currentFolderName)) {
+				const newFolderName = currentFolderName.replace(' - ', ' ')
+				await drive.files.update({
+					fileId: folder.id!,
+					requestBody: { name: newFolderName },
+				})
+				currentFolderName = newFolderName
+			} else {
+				const oldestPhotoResponse = await drive.files.list({
+					q: `'${folder.id}' in parents and mimeType contains 'image/' and trashed=false`,
+					fields: 'files(createdTime)',
+					orderBy: 'createdTime asc',
+					pageSize: 1,
+				})
+
+				const oldestPhoto = oldestPhotoResponse.data.files?.[0]
+
+				if (oldestPhoto?.createdTime) {
+					const date = new Date(oldestPhoto.createdTime)
+					const formattedDate = date.toISOString().split('T')[0]
+					const newFolderName = `${formattedDate} ${currentFolderName}`
+					await drive.files.update({
+						fileId: folder.id!,
+						requestBody: { name: newFolderName },
+					})
+					currentFolderName = newFolderName
+				}
+			}
+
 			const imagesResponse = await drive.files.list({
 				q: `'${folder.id}' in parents and mimeType contains 'image/' and trashed=false`,
 				fields: 'files(thumbnailLink)',
@@ -46,7 +88,7 @@ async function getAlbums(accessToken: string): Promise<Album[]> {
 
 			return {
 				id: folder.id!,
-				name: folder.name!,
+				name: currentFolderName,
 				coverImageThumbnail: imagesResponse.data.files?.[0]?.thumbnailLink,
 			}
 		})
