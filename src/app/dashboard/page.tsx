@@ -48,7 +48,7 @@ async function getAlbums(accessToken: string): Promise<Album[]> {
 			let currentFolderName = folder.name!
 
 			const correctDateRegex = /^\d{4}-\d{2}-\d{2} /
-			const oldIncorrectDateRegex = /^\d{4}-\d{2}-\d{2} - /
+			const oldIncorrectDateRegex = /^(\d{4}-\d{2}-\d{2})\s*[-–—]\s*/
 
 			if (correctDateRegex.test(currentFolderName)) {
 			} else if (oldIncorrectDateRegex.test(currentFolderName)) {
@@ -130,25 +130,29 @@ export default async function DashboardPage() {
 			<main className='max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8'>
 				{albums && albums.length > 0 ? (
 					<div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8'>
-						{albums.map(album => (
-							<Link href={`/album/${album.id}`} key={album.id} className='group relative block'>
-								<div className='aspect-[4/3] w-full overflow-hidden rounded-xl bg-slate-200 shadow-lg'>
-									{album.coverImageThumbnail ? (
-										<img
-											src={album.coverImageThumbnail}
-											alt={`Okładka albumu ${album.name}`}
-											className='w-full h-full object-cover transition-transform duration-300 ease-in-out group-hover:scale-110'
-										/>
-									) : (
-										<AlbumCardPlaceholder />
-									)}
-								</div>
-								<div className='absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-black/70 to-transparent pointer-events-none rounded-b-xl' />
-								<h3 className='absolute bottom-4 left-4 text-white text-lg font-semibold drop-shadow-md'>
-									{album.name}
-								</h3>
-							</Link>
-						))}
+						{albums.map(album => {
+							const displayName = album.name.replace(/^\d{4}-\d{2}-\d{2} /, '')
+
+							return (
+								<Link href={`/album/${album.id}`} key={album.id} className='group relative block'>
+									<div className='aspect-[4/3] w-full overflow-hidden rounded-xl bg-slate-200 shadow-lg'>
+										{album.coverImageThumbnail ? (
+											<img
+												src={album.coverImageThumbnail}
+												alt={`Okładka albumu ${displayName}`} // Używamy czystej nazwy w atrybucie alt
+												className='w-full h-full object-cover transition-transform duration-300 ease-in-out group-hover:scale-110'
+											/>
+										) : (
+											<AlbumCardPlaceholder />
+										)}
+									</div>
+									<div className='absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-black/70 to-transparent pointer-events-none rounded-b-xl' />
+									<h3 className='absolute bottom-4 left-4 text-white text-lg font-semibold drop-shadow-md'>
+										{displayName}
+									</h3>
+								</Link>
+							)
+						})}
 					</div>
 				) : (
 					<div className='text-center py-20'>
