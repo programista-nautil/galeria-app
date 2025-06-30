@@ -19,6 +19,9 @@ export function PhotoGrid({ photos, folderId }: { photos: Photo[]; folderId: str
 
 	const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null)
 
+	const [isCompressing, setIsCompressing] = useState(false)
+	const [compressionProgress, setCompressionProgress] = useState({ current: 0, total: 0 })
+
 	const handleOpenModal = (index: number) => {
 		setSelectedPhotoIndex(index)
 	}
@@ -88,17 +91,70 @@ export function PhotoGrid({ photos, folderId }: { photos: Photo[]; folderId: str
 		}
 	}
 
+	const handleStartCompression = async () => {
+		setIsCompressing(true)
+		setCompressionProgress({ current: 0, total: 0 })
+		toast.info('Pobieranie listy zdjęć do kompresji...')
+
+		try {
+			const res = await fetch(`/api/uncompressed-photos?folderId=${folderId}`)
+			if (!res.ok) throw new Error('Błąd serwera przy pobieraniu listy zdjęć.')
+			const photosToCompress = await res.json()
+
+			if (photosToCompress.length === 0) {
+				toast.success('Wszystkie zdjęcia w tym albumie są już skompresowane!')
+				setIsCompressing(false)
+				return
+			}
+
+			setCompressionProgress({ current: 0, total: photosToCompress.length })
+			toast.info(`Rozpoczynanie kompresji ${photosToCompress.length} zdjęć.`)
+
+			for (const photo of photosToCompress) {
+				try {
+					await fetch('/api/compress-photo', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ fileId: photo.id, fileName: photo.name }),
+					})
+					setCompressionProgress(prev => ({ ...prev, current: prev.current + 1 }))
+				} catch (err) {
+					console.error(`Nie udało się skompresować zdjęcia: ${photo.name}`, err)
+					toast.error(`Błąd podczas kompresji zdjęcia ${photo.name}`)
+				}
+			}
+			toast.success(`Kompresja zakończona! Zoptymalizowano ${photosToCompress.length} zdjęć.`)
+		} catch (error: any) {
+			toast.error(error.message || 'Wystąpił nieoczekiwany błąd.')
+			console.error(error)
+		} finally {
+			setIsCompressing(false)
+		}
+	}
+
 	return (
 		<div>
-			<div className='mb-6 p-4 bg-slate-50 rounded-lg flex items-center justify-between'>
-				<p className='text-slate-600'>Wybierz akcję do wykonania w tym albumie.</p>
-				<button
-					onClick={() => setIsSettingCover(!isSettingCover)}
-					className={`px-4 py-2 rounded-md text-sm font-semibold transition-colors ${
-						isSettingCover ? 'bg-red-500 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'
-					}`}>
-					{isSettingCover ? 'Anuluj' : 'Zmień okładkę'}
-				</button>
+			<div className='mb-6 p-4 bg-slate-50 rounded-lg flex items-center justify-between gap-4 flex-wrap'>
+				<p className='text-slate-600 text-sm'>Zarządzaj okładką lub zoptymalizuj zdjęcia w albumie.</p>
+				<div className='flex items-center gap-2'>
+					<button
+						onClick={() => setIsSettingCover(!isSettingCover)}
+						className={`px-4 py-2 rounded-md text-sm font-semibold transition-colors ${
+							isSettingCover
+								? 'bg-orange-500 text-white hover:bg-orange-600'
+								: 'bg-blue-600 text-white hover:bg-blue-700'
+						}`}>
+						{isSettingCover ? 'Anuluj' : 'Zmień okładkę'}
+					</button>
+					<button
+						onClick={handleStartCompression}
+						disabled={isCompressing}
+						className='px-4 py-2 rounded-md text-sm font-semibold transition-colors bg-green-600 text-white hover:bg-green-700 disabled:bg-slate-400 disabled:cursor-wait'>
+						{isCompressing
+							? `Kompresowanie... ${compressionProgress.current}/${compressionProgress.total}`
+							: 'Skompresuj zdjęcia'}
+					</button>
+				</div>
 			</div>
 
 			<div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4'>
