@@ -112,7 +112,10 @@ export function PhotoGrid({ photos, folderId }: { photos: Photo[]; folderId: str
 						{isSettingCover && (
 							<div className='absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity'>
 								<button
-									onClick={() => handleSetCover(photo.id)}
+									onClick={e => {
+										e.stopPropagation()
+										handleSetCover(photo.id)
+									}}
 									disabled={isLoading === photo.id || currentCoverId === photo.id}
 									className='px-3 py-1.5 bg-white text-slate-900 text-xs font-bold rounded-full disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 transition-transform'>
 									{isLoading === photo.id

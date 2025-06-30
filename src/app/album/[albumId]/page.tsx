@@ -81,6 +81,8 @@ export default async function AlbumPage({ params }: { params: { albumId: string 
 		getPhotos(session.user.accessToken, params.albumId),
 	])
 
+	const displayAlbumName = albumDetails.name.replace(/^\d{4}-\d{2}-\d{2}\s/, '')
+
 	const hasCover = photos.some(p => p.name.includes('_cover'))
 
 	if (!hasCover && photos.length > 0) {
@@ -104,7 +106,7 @@ export default async function AlbumPage({ params }: { params: { albumId: string 
 					<Link href='/dashboard' className='text-sm text-blue-600 hover:underline'>
 						&larr; Wróć do albumów
 					</Link>
-					<h1 className='text-3xl font-bold tracking-tight text-slate-900 mt-2'>{albumDetails.name}</h1>
+					<h1 className='text-3xl font-bold tracking-tight text-slate-900 mt-2'>{displayAlbumName}</h1>
 				</div>
 
 				<PhotoGrid photos={photos} folderId={params.albumId} />

@@ -51,23 +51,28 @@ async function getAlbums(accessToken: string): Promise<Album[]> {
 			const oldIncorrectDateRegex = /^(\d{4}-\d{2}-\d{2})\s*[-–—]\s*/
 
 			if (correctDateRegex.test(currentFolderName)) {
+				// Przypadek 1: Nazwa poprawna.
 			} else if (oldIncorrectDateRegex.test(currentFolderName)) {
-				const newFolderName = currentFolderName.replace(' - ', ' ')
+				// ========= POCZĄTEK ZMIANY: Kluczowa poprawka =========
+				// Używamy regexa także do zamiany, aby obsłużyć wszystkie rodzaje myślników.
+				// $1 odnosi się do daty przechwyconej w nawiasie w `oldIncorrectDateRegex`.
+				const newFolderName = currentFolderName.replace(oldIncorrectDateRegex, '$1 ')
+				// ========= KONIEC ZMIANY: Kluczowa poprawka =========
+
 				await drive.files.update({
 					fileId: folder.id!,
 					requestBody: { name: newFolderName },
 				})
 				currentFolderName = newFolderName
 			} else {
+				// Przypadek 3: Brak daty.
 				const oldestPhotoResponse = await drive.files.list({
 					q: `'${folder.id}' in parents and mimeType contains 'image/' and trashed=false`,
 					fields: 'files(createdTime)',
 					orderBy: 'createdTime asc',
 					pageSize: 1,
 				})
-
 				const oldestPhoto = oldestPhotoResponse.data.files?.[0]
-
 				if (oldestPhoto?.createdTime) {
 					const date = new Date(oldestPhoto.createdTime)
 					const formattedDate = date.toISOString().split('T')[0]
@@ -82,14 +87,25 @@ async function getAlbums(accessToken: string): Promise<Album[]> {
 
 			const imagesResponse = await drive.files.list({
 				q: `'${folder.id}' in parents and mimeType contains 'image/' and trashed=false`,
-				fields: 'files(thumbnailLink)',
-				pageSize: 1,
+				fields: 'files(id, name, thumbnailLink)',
 			})
+
+			let finalCoverUrl = null
+			if (imagesResponse.data.files && imagesResponse.data.files.length > 0) {
+				const allPhotos = imagesResponse.data.files
+				const coverPhoto = allPhotos.find(photo => photo.name && photo.name.includes('_cover'))
+
+				if (coverPhoto) {
+					finalCoverUrl = coverPhoto.thumbnailLink
+				} else {
+					finalCoverUrl = allPhotos[0].thumbnailLink
+				}
+			}
 
 			return {
 				id: folder.id!,
 				name: currentFolderName,
-				coverImageThumbnail: imagesResponse.data.files?.[0]?.thumbnailLink,
+				coverImageThumbnail: finalCoverUrl,
 			}
 		})
 	)
