@@ -4,14 +4,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../auth/[...nextauth]/route'
 import { google } from 'googleapis'
-import fs from 'fs'
 import { revalidatePath } from 'next/cache'
 import { Readable } from 'stream'
+import { startBackgroundCompression } from '@/lib/background-tasks'
 
 export async function POST(req: NextRequest) {
 	const session = await getServerSession(authOptions)
-	if (!session?.user?.accessToken) {
-		return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+	if (!session?.user?.accessToken || !session.user.refreshToken) {
+		return NextResponse.json({ error: 'Unauthorized or refresh token missing' }, { status: 401 })
 	}
 
 	try {
@@ -78,6 +78,9 @@ export async function POST(req: NextRequest) {
 		)
 
 		revalidatePath('/dashboard')
+
+		startBackgroundCompression(newFolderId, session.user.refreshToken)
+
 		return NextResponse.json({ success: true, uploadedFilesCount: photos.length })
 	} catch (error: any) {
 		console.error('Error creating album:', error)
