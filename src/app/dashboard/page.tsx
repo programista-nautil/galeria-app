@@ -4,7 +4,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '../api/auth/[...nextauth]/route'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { SignOutButton } from '@/app/components/AuthButton'
+import { AddAlbum } from './components/AddAlbum'
 import { google } from 'googleapis'
 import Header from '../components/Header'
 
@@ -144,6 +144,10 @@ export default async function DashboardPage() {
 		<div className='min-h-screen bg-white'>
 			<Header />
 			<main className='max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8'>
+				<div className='flex justify-between items-center mb-8'>
+					<h2 className='text-2xl font-semibold text-slate-800'>Przeglądaj Albumy</h2>
+					<AddAlbum />
+				</div>
 				{albums && albums.length > 0 ? (
 					<div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8'>
 						{albums.map(album => {
