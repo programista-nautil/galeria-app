@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import Header from '@/app/components/Header'
 import { PhotoGrid } from './components/PhotoGrid'
+import { getDriveClient } from '@/lib/drive'
 
 interface Photo {
 	id: string
@@ -18,10 +19,8 @@ interface Album {
 	name: string
 }
 
-async function setInitialCover(accessToken: string, folderId: string, fileId: string): Promise<{ newName: string }> {
-	const oauth2Client = new google.auth.OAuth2()
-	oauth2Client.setCredentials({ access_token: accessToken })
-	const drive = google.drive({ version: 'v3', auth: oauth2Client })
+async function setInitialCover(folderId: string, fileId: string): Promise<{ newName: string }> {
+	const drive = getDriveClient()
 
 	const fileRes = await drive.files.get({ fileId: fileId, fields: 'name' })
 	const originalName = fileRes.data.name
@@ -47,10 +46,8 @@ async function setInitialCover(accessToken: string, folderId: string, fileId: st
 	return { newName: coverName }
 }
 
-async function getAlbumDetails(accessToken: string, albumId: string): Promise<Album> {
-	const oauth2Client = new google.auth.OAuth2()
-	oauth2Client.setCredentials({ access_token: accessToken })
-	const drive = google.drive({ version: 'v3', auth: oauth2Client })
+async function getAlbumDetails(albumId: string): Promise<Album> {
+	const drive = getDriveClient()
 	const response = await drive.files.get({
 		fileId: albumId,
 		fields: 'name',
@@ -58,28 +55,24 @@ async function getAlbumDetails(accessToken: string, albumId: string): Promise<Al
 	return response.data as Album
 }
 
-async function getPhotos(accessToken: string, albumId: string): Promise<Photo[]> {
-	const oauth2Client = new google.auth.OAuth2()
-	oauth2Client.setCredentials({ access_token: accessToken })
-	const drive = google.drive({ version: 'v3', auth: oauth2Client })
+async function getPhotos(albumId: string): Promise<Photo[]> {
+	const drive = getDriveClient()
 	const response = await drive.files.list({
 		q: `'${albumId}' in parents and mimeType contains 'image/' and trashed=false`,
 		fields: 'files(id, name, thumbnailLink)',
 		pageSize: 1000,
 	})
-	return response.data.files as Photo[]
+
+	return (response.data.files as Photo[]) || []
 }
 
 export default async function AlbumPage({ params }: { params: { albumId: string } }) {
 	const session = await getServerSession(authOptions)
-	if (!session?.user?.accessToken) {
+	if (!session?.user?.email) {
 		redirect('/')
 	}
 
-	let [albumDetails, photos] = await Promise.all([
-		getAlbumDetails(session.user.accessToken, params.albumId),
-		getPhotos(session.user.accessToken, params.albumId),
-	])
+	let [albumDetails, photos] = await Promise.all([getAlbumDetails(params.albumId), getPhotos(params.albumId)])
 
 	const displayAlbumName = albumDetails.name.replace(/^\d{4}-\d{2}-\d{2}\s/, '')
 
@@ -87,7 +80,7 @@ export default async function AlbumPage({ params }: { params: { albumId: string 
 
 	if (!hasCover && photos.length > 0) {
 		try {
-			const result = await setInitialCover(session.user.accessToken, params.albumId, photos[0].id)
+			const result = await setInitialCover(params.albumId, photos[0].id)
 
 			const photoToUpdate = photos.find(p => p.id === photos[0].id)
 			if (photoToUpdate) {

@@ -20,6 +20,8 @@
 # production
 /build
 
+google-credentials.json
+
 # misc
 .DS_Store
 *.pem

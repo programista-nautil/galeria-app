@@ -6,6 +6,7 @@ import { NextResponse } from 'next/server'
 import { authOptions } from '../auth/[...nextauth]/route'
 import sharp from 'sharp'
 import { Readable } from 'stream'
+import { getDriveClient } from '@/lib/drive'
 
 async function streamToBuffer(stream: Readable): Promise<Buffer> {
 	const chunks: Buffer[] = []
@@ -17,7 +18,7 @@ async function streamToBuffer(stream: Readable): Promise<Buffer> {
 
 export async function POST(request: Request) {
 	const session = await getServerSession(authOptions)
-	if (!session?.user?.accessToken) {
+	if (!session?.user?.email) {
 		return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 	}
 
@@ -26,9 +27,7 @@ export async function POST(request: Request) {
 		return NextResponse.json({ error: 'File ID and File Name are required' }, { status: 400 })
 	}
 
-	const oauth2Client = new google.auth.OAuth2()
-	oauth2Client.setCredentials({ access_token: session.user.accessToken })
-	const drive = google.drive({ version: 'v3', auth: oauth2Client })
+	const drive = getDriveClient()
 
 	try {
 		const response = await drive.files.get({ fileId, alt: 'media' }, { responseType: 'stream' })

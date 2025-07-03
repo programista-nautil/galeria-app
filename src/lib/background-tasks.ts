@@ -3,6 +3,7 @@
 import { google } from 'googleapis'
 import sharp from 'sharp'
 import { Readable } from 'stream'
+import { getDriveClient } from './drive'
 
 async function streamToBuffer(stream: Readable): Promise<Buffer> {
 	const chunks: Buffer[] = []
@@ -12,13 +13,11 @@ async function streamToBuffer(stream: Readable): Promise<Buffer> {
 	return Buffer.concat(chunks)
 }
 
-export async function startBackgroundCompression(albumId: string, refreshToken: string) {
+export async function startBackgroundCompression(albumId: string) {
 	console.log(`BACKGROUND: Starting compression for album ID: ${albumId}`)
 
 	try {
-		const oauth2Client = new google.auth.OAuth2(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET)
-		oauth2Client.setCredentials({ refresh_token: refreshToken })
-		const drive = google.drive({ version: 'v3', auth: oauth2Client })
+		const drive = getDriveClient()
 
 		const photosToCompressRes = await drive.files.list({
 			q: `'${albumId}' in parents and mimeType contains 'image/' and trashed=false and not name contains '_compressed'`,

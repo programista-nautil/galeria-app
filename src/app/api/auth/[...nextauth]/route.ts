@@ -11,26 +11,12 @@ const authOptions: AuthOptions = {
 					prompt: 'consent',
 					access_type: 'offline',
 					response_type: 'code',
-					scope: 'openid email profile https://www.googleapis.com/auth/drive',
+					scope: 'openid email profile',
 				},
 			},
 		}),
 	],
 	secret: process.env.NEXTAUTH_SECRET,
-	callbacks: {
-		async jwt({ token, account }) {
-			if (account) {
-				token.accessToken = account.access_token
-				token.refreshToken = account.refresh_token
-			}
-			return token
-		},
-		async session({ session, token }) {
-			session.user.accessToken = token.accessToken
-			session.user.refreshToken = token.refreshToken
-			return session
-		},
-	},
 }
 
 const handler = NextAuth(authOptions)

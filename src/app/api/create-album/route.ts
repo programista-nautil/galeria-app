@@ -7,11 +7,12 @@ import { google } from 'googleapis'
 import { revalidatePath } from 'next/cache'
 import { Readable } from 'stream'
 import { startBackgroundCompression } from '@/lib/background-tasks'
+import { getDriveClient, findClientFolderId } from '@/lib/drive'
 
 export async function POST(req: NextRequest) {
 	const session = await getServerSession(authOptions)
-	if (!session?.user?.accessToken || !session.user.refreshToken) {
-		return NextResponse.json({ error: 'Unauthorized or refresh token missing' }, { status: 401 })
+	if (!session?.user?.email) {
+		return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 	}
 
 	try {
@@ -24,18 +25,11 @@ export async function POST(req: NextRequest) {
 			return NextResponse.json({ error: 'Tytuł i zdjęcia są wymagane' }, { status: 400 })
 		}
 
-		const oauth2Client = new google.auth.OAuth2()
-		oauth2Client.setCredentials({ access_token: session.user.accessToken })
-		const drive = google.drive({ version: 'v3', auth: oauth2Client })
+		const drive = getDriveClient()
 
-		const parentFolderResponse = await drive.files.list({
-			q: "mimeType='application/vnd.google-apps.folder' and name='Galeria Zdjęć' and 'root' in parents and trashed=false",
-			fields: 'files(id)',
-			pageSize: 1,
-		})
-		const parentFolderId = parentFolderResponse.data.files?.[0]?.id
+		const parentFolderId = await findClientFolderId(drive, session.user.email)
 		if (!parentFolderId) {
-			throw new Error("Folder 'Galeria Zdjęć' nie został znaleziony.")
+			throw new Error(`Nie można utworzyć albumu, ponieważ nie znaleziono folderu dla klienta: ${session.user.email}`)
 		}
 
 		const formattedDate = new Date().toISOString().split('T')[0]
@@ -44,7 +38,7 @@ export async function POST(req: NextRequest) {
 		const folderMetadata = {
 			name: newFolderName,
 			mimeType: 'application/vnd.google-apps.folder',
-			parents: [parentFolderId],
+			parents: [parentFolderId], // Używamy znalezionego ID folderu klienta
 		}
 		const newFolder = await drive.files.create({
 			requestBody: folderMetadata,
@@ -79,7 +73,7 @@ export async function POST(req: NextRequest) {
 
 		revalidatePath('/dashboard')
 
-		startBackgroundCompression(newFolderId, session.user.refreshToken)
+		startBackgroundCompression(newFolderId)
 
 		return NextResponse.json({ success: true, uploadedFilesCount: photos.length })
 	} catch (error: any) {

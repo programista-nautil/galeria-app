@@ -5,11 +5,11 @@ import { getServerSession } from 'next-auth'
 import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { authOptions } from '../auth/[...nextauth]/route'
+import { getDriveClient } from '@/lib/drive'
 
 export async function POST(request: Request) {
 	const session = await getServerSession(authOptions)
-
-	if (!session?.user?.accessToken) {
+	if (!session?.user?.email) {
 		return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 	}
 
@@ -19,9 +19,7 @@ export async function POST(request: Request) {
 		return NextResponse.json({ error: 'File ID and Folder ID are required' }, { status: 400 })
 	}
 
-	const oauth2Client = new google.auth.OAuth2()
-	oauth2Client.setCredentials({ access_token: session.user.accessToken })
-	const drive = google.drive({ version: 'v3', auth: oauth2Client })
+	const drive = getDriveClient()
 
 	try {
 		const oldCoverRes = await drive.files.list({

@@ -7,6 +7,10 @@ import Link from 'next/link'
 import { AddAlbum } from './components/AddAlbum'
 import { google } from 'googleapis'
 import Header from '../components/Header'
+import { clientFolderMapping } from '@/lib/permissions'
+import { BulkCompressButton } from './components/BulkCompressButton'
+import path from 'path'
+import { getDriveClient } from '@/lib/drive'
 
 interface Album {
 	id: string
@@ -14,32 +18,37 @@ interface Album {
 	coverImageThumbnail?: string | null
 }
 
-async function getAlbums(accessToken: string): Promise<Album[]> {
-	const oauth2Client = new google.auth.OAuth2(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET)
-	oauth2Client.setCredentials({ access_token: accessToken })
-
-	const drive = google.drive({ version: 'v3', auth: oauth2Client })
-
-	const parentFolderResponse = await drive.files.list({
-		q: "mimeType='application/vnd.google-apps.folder' and name='Galeria Zdjęć' and 'root' in parents and trashed=false",
-		fields: 'files(id)',
-		pageSize: 1,
-	})
-
-	const parentFolder = parentFolderResponse.data.files?.[0]
-
-	if (!parentFolder?.id) {
-		console.log("Folder 'Galeria Zdjęć' not found in the root directory.")
+async function getAlbums(userEmail: string): Promise<Album[]> {
+	const clientFolderName = clientFolderMapping[userEmail]
+	if (!clientFolderName) {
+		console.log(`No folder mapping for user: ${userEmail}`)
 		return []
 	}
-	const parentFolderId = parentFolder.id
+
+	const drive = getDriveClient()
+
+	const mainFolderRes = await drive.files.list({
+		q: "mimeType='application/vnd.google-apps.folder' and name='Galeria Klientów'",
+		fields: 'files(id)',
+	})
+	const mainFolderId = mainFolderRes.data.files?.[0]?.id
+	if (!mainFolderId) throw new Error("Main folder 'Galeria Klientów' not found.")
+
+	const clientFolderRes = await drive.files.list({
+		q: `mimeType='application/vnd.google-apps.folder' and name='${clientFolderName}' and '${mainFolderId}' in parents`,
+		fields: 'files(id)',
+	})
+	const clientFolderId = clientFolderRes.data.files?.[0]?.id
+	if (!clientFolderId) {
+		console.log(`Client folder '${clientFolderName}' not found for user ${userEmail}`)
+		return []
+	}
 
 	const foldersResponse = await drive.files.list({
-		q: `'${parentFolderId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+		q: `'${clientFolderId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,
 		fields: 'files(id, name)',
 		orderBy: 'name desc',
 	})
-
 	const folders = foldersResponse.data.files
 	if (!folders || folders.length === 0) return []
 
@@ -51,13 +60,8 @@ async function getAlbums(accessToken: string): Promise<Album[]> {
 			const oldIncorrectDateRegex = /^(\d{4}-\d{2}-\d{2})\s*[-–—]\s*/
 
 			if (correctDateRegex.test(currentFolderName)) {
-				// Przypadek 1: Nazwa poprawna.
 			} else if (oldIncorrectDateRegex.test(currentFolderName)) {
-				// ========= POCZĄTEK ZMIANY: Kluczowa poprawka =========
-				// Używamy regexa także do zamiany, aby obsłużyć wszystkie rodzaje myślników.
-				// $1 odnosi się do daty przechwyconej w nawiasie w `oldIncorrectDateRegex`.
 				const newFolderName = currentFolderName.replace(oldIncorrectDateRegex, '$1 ')
-				// ========= KONIEC ZMIANY: Kluczowa poprawka =========
 
 				await drive.files.update({
 					fileId: folder.id!,
@@ -65,7 +69,6 @@ async function getAlbums(accessToken: string): Promise<Album[]> {
 				})
 				currentFolderName = newFolderName
 			} else {
-				// Przypadek 3: Brak daty.
 				const oldestPhotoResponse = await drive.files.list({
 					q: `'${folder.id}' in parents and mimeType contains 'image/' and trashed=false`,
 					fields: 'files(createdTime)',
@@ -134,11 +137,11 @@ const AlbumCardPlaceholder = () => (
 export default async function DashboardPage() {
 	const session = await getServerSession(authOptions)
 
-	if (!session || !session.user.accessToken) {
+	if (!session?.user?.email) {
 		redirect('/')
 	}
 
-	const albums = await getAlbums(session.user.accessToken)
+	const albums = await getAlbums(session.user.email)
 
 	return (
 		<div className='min-h-screen bg-white'>
@@ -146,7 +149,10 @@ export default async function DashboardPage() {
 			<main className='max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8'>
 				<div className='flex justify-between items-center mb-8'>
 					<h2 className='text-2xl font-semibold text-slate-800'>Przeglądaj Albumy</h2>
-					<AddAlbum />
+					<div className='flex items-center gap-2'>
+						<BulkCompressButton />
+						<AddAlbum />
+					</div>
 				</div>
 				{albums && albums.length > 0 ? (
 					<div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8'>
