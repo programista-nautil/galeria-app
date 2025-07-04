@@ -1,17 +1,17 @@
-// app/components/AuthButtons.tsx
+// app/components/AuthButton.js
 
 'use client'
 
 import { signIn, signOut } from 'next-auth/react'
 
 const baseButtonStyles =
-	'inline-flex items-center justify-center rounded-full text-base font-semibold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 disabled:opacity-50 disabled:pointer-events-none px-8 py-3'
+	'inline-flex w-full items-center justify-center rounded-full text-base font-semibold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none px-8 py-3'
 
 export function AuthButton() {
 	return (
 		<button
 			onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
-			className={`${baseButtonStyles} bg-white text-slate-900 shadow-lg hover:bg-slate-200 hover:scale-105 active:scale-100`}>
+			className={`${baseButtonStyles} bg-blue-600 text-white shadow-lg hover:bg-blue-700 focus-visible:ring-blue-500 hover:scale-105 active:scale-100`}>
 			Zaloguj się przez Google
 		</button>
 	)
@@ -21,7 +21,7 @@ export function SignOutButton() {
 	return (
 		<button
 			onClick={() => signOut({ callbackUrl: '/' })}
-			className={`${baseButtonStyles} bg-red-600 text-white hover:bg-red-700`}>
+			className='inline-flex items-center justify-center rounded-md text-sm font-semibold transition-colors bg-red-600 text-white hover:bg-red-700 px-4 py-2'>
 			Wyloguj się
 		</button>
 	)
