@@ -8,18 +8,15 @@ import Header from '@/app/components/Header'
 import { PhotoGrid } from './components/PhotoGrid'
 import { getAlbumDetails, getPhotos, setInitialCover } from '@/lib/album-actions'
 
-type Props = {
-	params: { albumId: string }
-	searchParams: { [key: string]: string | string[] | undefined }
-}
-
-export default async function AlbumPage({ params }: Props) {
+export default async function AlbumPage({ params }: { params: { albumId: string } }) {
 	const session = await getServerSession(authOptions)
 	if (!session?.user?.email) {
 		redirect('/')
 	}
 
-	const [albumDetails, photos] = await Promise.all([getAlbumDetails(params.albumId), getPhotos(params.albumId)])
+	const albumId = params.albumId
+
+	let [albumDetails, photos] = await Promise.all([getAlbumDetails(albumId), getPhotos(albumId)])
 
 	//const displayAlbumName = albumDetails.name.replace(/^\d{4}-\d{2}-\d{2}\s/, '')
 
