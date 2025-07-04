@@ -18,6 +18,11 @@ interface Album {
 	name: string
 }
 
+type Props = {
+	params: { albumId: string }
+	searchParams: { [key: string]: string | string[] | undefined }
+}
+
 async function setInitialCover(folderId: string, fileId: string): Promise<{ newName: string }> {
 	const drive = getDriveClient()
 
@@ -65,7 +70,7 @@ async function getPhotos(albumId: string): Promise<Photo[]> {
 	return (response.data.files as Photo[]) || []
 }
 
-export default async function AlbumPage({ params }: { params: { albumId: string } }) {
+export default async function AlbumPage({ params }: Props) {
 	const session = await getServerSession(authOptions)
 	if (!session?.user?.email) {
 		redirect('/')
