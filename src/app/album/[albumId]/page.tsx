@@ -8,13 +8,13 @@ import Header from '@/app/components/Header'
 import { PhotoGrid } from './components/PhotoGrid'
 import { getAlbumDetails, getPhotos, setInitialCover } from '@/lib/album-actions'
 
-export default async function AlbumPage({ params }: { params: { albumId: string } }) {
+export default async function AlbumPage({ params }: { params: Promise<{ albumId: string }> }) {
 	const session = await getServerSession(authOptions)
 	if (!session?.user?.email) {
 		redirect('/')
 	}
 
-	const albumId = params.albumId
+	const { albumId } = await params
 
 	const [albumDetails, photos] = await Promise.all([getAlbumDetails(albumId), getPhotos(albumId)])
 
@@ -24,7 +24,7 @@ export default async function AlbumPage({ params }: { params: { albumId: string 
 
 	if (!hasCover && photos.length > 0) {
 		try {
-			const result = await setInitialCover(params.albumId, photos[0].id)
+			const result = await setInitialCover(albumId, photos[0].id)
 
 			const photoToUpdate = photos.find(p => p.id === photos[0].id)
 			if (photoToUpdate) {
@@ -46,7 +46,7 @@ export default async function AlbumPage({ params }: { params: { albumId: string 
 					<h1 className='text-3xl font-bold tracking-tight text-slate-900 mt-2'>{albumDetails.name}</h1>
 				</div>
 
-				<PhotoGrid photos={photos} folderId={params.albumId} />
+				<PhotoGrid photos={photos} folderId={albumId} />
 			</main>
 		</div>
 	)
