@@ -165,7 +165,7 @@ export default async function DashboardPage() {
 										{album.coverImageThumbnail ? (
 											<img
 												src={album.coverImageThumbnail}
-												alt={`Okładka albumu ${displayName}`} // Używamy czystej nazwy w atrybucie alt
+												alt={`Okładka albumu ${album.name}`}
 												className='w-full h-full object-cover transition-transform duration-300 ease-in-out group-hover:scale-110'
 											/>
 										) : (
@@ -174,7 +174,7 @@ export default async function DashboardPage() {
 									</div>
 									<div className='absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-black/70 to-transparent pointer-events-none rounded-b-xl' />
 									<h3 className='absolute bottom-4 left-4 text-white text-lg font-semibold drop-shadow-md'>
-										{displayName}
+										{album.name}
 									</h3>
 								</Link>
 							)

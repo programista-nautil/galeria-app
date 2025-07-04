@@ -99,7 +99,7 @@ export default async function AlbumPage({ params }: { params: { albumId: string 
 					<Link href='/dashboard' className='text-sm text-blue-600 hover:underline'>
 						&larr; Wróć do albumów
 					</Link>
-					<h1 className='text-3xl font-bold tracking-tight text-slate-900 mt-2'>{displayAlbumName}</h1>
+					<h1 className='text-3xl font-bold tracking-tight text-slate-900 mt-2'>{albumDetails.name}</h1>
 				</div>
 
 				<PhotoGrid photos={photos} folderId={params.albumId} />
