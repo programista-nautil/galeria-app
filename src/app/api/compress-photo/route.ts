@@ -1,7 +1,7 @@
 // src/app/api/compress-photo/route.ts
 import { getServerSession } from 'next-auth'
 import { NextResponse } from 'next/server'
-import { authOptions } from '../auth/[...nextauth]/route'
+import { authOptions } from '@/lib/auth'
 import sharp from 'sharp'
 import { Readable } from 'stream'
 import { getDriveClient } from '@/lib/drive'

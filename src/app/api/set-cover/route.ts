@@ -2,7 +2,7 @@
 import { getServerSession } from 'next-auth'
 import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
-import { authOptions } from '../auth/[...nextauth]/route'
+import { authOptions } from '@/lib/auth'
 import { getDriveClient } from '@/lib/drive'
 
 export async function POST(request: Request) {

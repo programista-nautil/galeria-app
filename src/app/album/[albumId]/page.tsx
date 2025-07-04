@@ -3,7 +3,7 @@
 import { getServerSession } from 'next-auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { authOptions } from '@/lib/auth'
 import Header from '@/app/components/Header'
 import { PhotoGrid } from './components/PhotoGrid'
 import { getAlbumDetails, getPhotos, setInitialCover } from '@/lib/album-actions'

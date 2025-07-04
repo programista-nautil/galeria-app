@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '../../auth/[...nextauth]/route'
+import { authOptions } from '@/lib/auth'
 import { getDriveClient, findClientFolderId } from '@/lib/drive'
 import { startBackgroundCompression } from '@/lib/background-tasks'
 
