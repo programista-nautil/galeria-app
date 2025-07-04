@@ -1,5 +1,6 @@
 import NextAuth, { AuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
+import { clientFolderMapping } from '@/lib/permissions'
 
 const authOptions: AuthOptions = {
 	providers: [
@@ -17,6 +18,17 @@ const authOptions: AuthOptions = {
 		}),
 	],
 	secret: process.env.NEXTAUTH_SECRET,
+	callbacks: {
+		async signIn({ user }) {
+			if (user.email && clientFolderMapping.hasOwnProperty(user.email)) {
+				return true
+			} else {
+				console.log(`ACCESS DENIED for unauthorized user: ${user.email}`)
+
+				return false
+			}
+		},
+	},
 }
 
 const handler = NextAuth(authOptions)
