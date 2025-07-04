@@ -124,9 +124,15 @@ export function PhotoGrid({ photos, folderId }: { photos: Photo[]; folderId: str
 				}
 			}
 			toast.success(`Kompresja zakończona! Zoptymalizowano ${photosToCompress.length} zdjęć.`)
-		} catch (error: any) {
-			toast.error(error.message || 'Wystąpił nieoczekiwany błąd.')
-			console.error(error)
+		} catch (error: unknown) {
+			let errorMessage = 'Wystąpił nieoczekiwany błąd.'
+
+			if (error instanceof Error) {
+				errorMessage = error.message
+			}
+
+			toast.error(errorMessage)
+			console.error('Błąd podczas procesu kompresji:', error)
 		} finally {
 			setIsCompressing(false)
 		}

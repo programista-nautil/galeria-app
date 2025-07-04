@@ -1,6 +1,4 @@
 // src/app/api/set-cover/route.ts
-
-import { google } from 'googleapis'
 import { getServerSession } from 'next-auth'
 import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'

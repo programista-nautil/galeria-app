@@ -8,7 +8,6 @@ export function AddAlbum() {
 	const [isUploading, setIsUploading] = useState(false)
 	const [title, setTitle] = useState('')
 	const [files, setFiles] = useState<FileList | null>(null)
-	const fileInputRef = useRef<HTMLInputElement>(null)
 
 	const handleOpen = () => setIsOpen(true)
 	const handleClose = () => {
@@ -49,8 +48,12 @@ export function AddAlbum() {
 			toast.success(`Album "${title}" został dodany z ${result.uploadedFilesCount} zdjęciami!`)
 			handleClose()
 			window.location.reload()
-		} catch (error: any) {
-			toast.error(`Błąd przesyłania: ${error.message}`)
+		} catch (error) {
+			let errorMessage = 'Wystąpił nieoczekiwany błąd.'
+			if (error instanceof Error) {
+				errorMessage = `Błąd przesyłania: ${error.message}`
+			}
+			toast.error(errorMessage)
 		} finally {
 			setIsUploading(false)
 		}
@@ -95,7 +98,7 @@ export function AddAlbum() {
 											type='file'
 											id='photoUpload'
 											onChange={e => setFiles(e.target.files)}
-											// @ts-ignore
+											// @ts-expect-error Property 'webkitdirectory' does not exist on type 'IntrinsicElements'.
 											webkitdirectory='true'
 											directory='true'
 											multiple

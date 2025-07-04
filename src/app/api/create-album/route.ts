@@ -3,7 +3,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../auth/[...nextauth]/route'
-import { google } from 'googleapis'
 import { revalidatePath } from 'next/cache'
 import { Readable } from 'stream'
 import { startBackgroundCompression } from '@/lib/background-tasks'
@@ -76,8 +75,12 @@ export async function POST(req: NextRequest) {
 		startBackgroundCompression(newFolderId)
 
 		return NextResponse.json({ success: true, uploadedFilesCount: photos.length })
-	} catch (error: any) {
-		console.error('Error creating album:', error)
-		return NextResponse.json({ error: error.message || 'Wystąpił błąd serwera.' }, { status: 500 })
+	} catch (error: unknown) {
+		let errorMessage = 'Wystąpił nieznany błąd serwera.'
+		if (error instanceof Error) {
+			errorMessage = error.message
+		}
+
+		return NextResponse.json({ error: errorMessage }, { status: 500 })
 	}
 }

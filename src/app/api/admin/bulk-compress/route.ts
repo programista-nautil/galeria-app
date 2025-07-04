@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../../auth/[...nextauth]/route'
-import { google } from 'googleapis'
 import { getDriveClient, findClientFolderId } from '@/lib/drive'
 import { startBackgroundCompression } from '@/lib/background-tasks'
 
-export async function POST(req: NextRequest) {
+export async function POST() {
 	const session = await getServerSession(authOptions)
 	if (!session?.user?.email) {
 		return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -40,8 +39,14 @@ export async function POST(req: NextRequest) {
 
 		const message = `Zlecono kompresję w tle dla ${albums.length} albumów klienta ${session.user.email}.`
 		return NextResponse.json({ success: true, message })
-	} catch (error: any) {
+	} catch (error: unknown) {
 		console.error('Error starting bulk compression:', error)
-		return NextResponse.json({ error: error.message || 'Wystąpił błąd serwera.' }, { status: 500 })
+
+		let errorMessage = 'Wystąpił nieznany błąd serwera.'
+		if (error instanceof Error) {
+			errorMessage = error.message
+		}
+
+		return NextResponse.json({ error: errorMessage }, { status: 500 })
 	}
 }

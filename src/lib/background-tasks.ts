@@ -1,6 +1,4 @@
 // src/lib/background-tasks.ts
-
-import { google } from 'googleapis'
 import sharp from 'sharp'
 import { Readable } from 'stream'
 import { getDriveClient } from './drive'
