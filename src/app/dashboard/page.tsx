@@ -5,11 +5,9 @@ import { authOptions } from '../api/auth/[...nextauth]/route'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { AddAlbum } from './components/AddAlbum'
-import { google } from 'googleapis'
 import Header from '../components/Header'
 import { clientFolderMapping } from '@/lib/permissions'
 import { BulkCompressButton } from './components/BulkCompressButton'
-import path from 'path'
 import { getDriveClient } from '@/lib/drive'
 
 interface Album {
@@ -157,7 +155,7 @@ export default async function DashboardPage() {
 				{albums && albums.length > 0 ? (
 					<div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8'>
 						{albums.map(album => {
-							const displayName = album.name.replace(/^\d{4}-\d{2}-\d{2} /, '')
+							//const displayName = album.name.replace(/^\d{4}-\d{2}-\d{2} /, '')
 
 							return (
 								<Link href={`/album/${album.id}`} key={album.id} className='group relative block'>

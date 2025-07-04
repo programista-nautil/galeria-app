@@ -82,7 +82,7 @@ export function PhotoGrid({ photos, folderId }: { photos: Photo[]; folderId: str
 
 			toast.success(`Ustawiono nową okładkę dla albumu!`)
 			setIsSettingCover(false)
-		} catch (error) {
+		} catch (error: unknown) {
 			console.error(error)
 			toast.error('Wystąpił błąd podczas ustawiania okładki.')
 			setCurrentCoverId(previousCoverId)

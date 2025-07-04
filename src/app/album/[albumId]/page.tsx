@@ -2,7 +2,6 @@
 
 import { getServerSession } from 'next-auth'
 import { redirect } from 'next/navigation'
-import { google } from 'googleapis'
 import Link from 'next/link'
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import Header from '@/app/components/Header'
@@ -72,9 +71,9 @@ export default async function AlbumPage({ params }: { params: { albumId: string 
 		redirect('/')
 	}
 
-	let [albumDetails, photos] = await Promise.all([getAlbumDetails(params.albumId), getPhotos(params.albumId)])
+	const [albumDetails, photos] = await Promise.all([getAlbumDetails(params.albumId), getPhotos(params.albumId)])
 
-	const displayAlbumName = albumDetails.name.replace(/^\d{4}-\d{2}-\d{2}\s/, '')
+	//const displayAlbumName = albumDetails.name.replace(/^\d{4}-\d{2}-\d{2}\s/, '')
 
 	const hasCover = photos.some(p => p.name.includes('_cover'))
 
