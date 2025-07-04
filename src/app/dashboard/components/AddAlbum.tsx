@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, FormEvent } from 'react'
+import { useState, FormEvent } from 'react'
 import { toast } from 'sonner'
 
 export function AddAlbum() {
