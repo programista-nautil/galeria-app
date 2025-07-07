@@ -16,6 +16,8 @@ interface Album {
 	coverImageThumbnail?: string | null
 }
 
+const showBulkCompressForClient = ''
+
 async function getAlbums(userEmail: string): Promise<Album[]> {
 	const clientFolderName = clientFolderMapping[userEmail]
 	if (!clientFolderName) {
@@ -139,6 +141,18 @@ export default async function DashboardPage() {
 		redirect('/')
 	}
 
+	const clientFolderName = clientFolderMapping[session.user.email]
+	if (!clientFolderName) {
+		return (
+			<div className='min-h-screen bg-white'>
+				<Header />
+				<main className='max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8'>
+					<p>Brak dostępu. Skontaktuj się z administratorem.</p>
+				</main>
+			</div>
+		)
+	}
+
 	const albums = await getAlbums(session.user.email)
 
 	return (
@@ -148,7 +162,7 @@ export default async function DashboardPage() {
 				<div className='flex justify-between items-center mb-8'>
 					<h2 className='text-2xl font-semibold text-slate-800'>Przeglądaj Albumy</h2>
 					<div className='flex items-center gap-2'>
-						<BulkCompressButton />
+						{clientFolderName === showBulkCompressForClient && <BulkCompressButton />}
 						<AddAlbum />
 					</div>
 				</div>

@@ -19,8 +19,8 @@ export function PhotoGrid({ photos, folderId }: { photos: Photo[]; folderId: str
 
 	const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null)
 
-	const [isCompressing, setIsCompressing] = useState(false)
-	const [compressionProgress, setCompressionProgress] = useState({ current: 0, total: 0 })
+	//const [isCompressing, setIsCompressing] = useState(false)
+	//const [compressionProgress, setCompressionProgress] = useState({ current: 0, total: 0 })
 
 	const handleOpenModal = (index: number) => {
 		setSelectedPhotoIndex(index)
@@ -91,52 +91,52 @@ export function PhotoGrid({ photos, folderId }: { photos: Photo[]; folderId: str
 		}
 	}
 
-	const handleStartCompression = async () => {
-		setIsCompressing(true)
-		setCompressionProgress({ current: 0, total: 0 })
-		toast.info('Pobieranie listy zdjęć do kompresji...')
+	// const handleStartCompression = async () => {
+	// 	setIsCompressing(true)
+	// 	setCompressionProgress({ current: 0, total: 0 })
+	// 	toast.info('Pobieranie listy zdjęć do kompresji...')
 
-		try {
-			const res = await fetch(`/api/uncompressed-photos?folderId=${folderId}`)
-			if (!res.ok) throw new Error('Błąd serwera przy pobieraniu listy zdjęć.')
-			const photosToCompress = await res.json()
+	// 	try {
+	// 		const res = await fetch(`/api/uncompressed-photos?folderId=${folderId}`)
+	// 		if (!res.ok) throw new Error('Błąd serwera przy pobieraniu listy zdjęć.')
+	// 		const photosToCompress = await res.json()
 
-			if (photosToCompress.length === 0) {
-				toast.success('Wszystkie zdjęcia w tym albumie są już skompresowane!')
-				setIsCompressing(false)
-				return
-			}
+	// 		if (photosToCompress.length === 0) {
+	// 			toast.success('Wszystkie zdjęcia w tym albumie są już skompresowane!')
+	// 			setIsCompressing(false)
+	// 			return
+	// 		}
 
-			setCompressionProgress({ current: 0, total: photosToCompress.length })
-			toast.info(`Rozpoczynanie kompresji ${photosToCompress.length} zdjęć.`)
+	// 		setCompressionProgress({ current: 0, total: photosToCompress.length })
+	// 		toast.info(`Rozpoczynanie kompresji ${photosToCompress.length} zdjęć.`)
 
-			for (const photo of photosToCompress) {
-				try {
-					await fetch('/api/compress-photo', {
-						method: 'POST',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({ fileId: photo.id, fileName: photo.name }),
-					})
-					setCompressionProgress(prev => ({ ...prev, current: prev.current + 1 }))
-				} catch (err) {
-					console.error(`Nie udało się skompresować zdjęcia: ${photo.name}`, err)
-					toast.error(`Błąd podczas kompresji zdjęcia ${photo.name}`)
-				}
-			}
-			toast.success(`Kompresja zakończona! Zoptymalizowano ${photosToCompress.length} zdjęć.`)
-		} catch (error: unknown) {
-			let errorMessage = 'Wystąpił nieoczekiwany błąd.'
+	// 		for (const photo of photosToCompress) {
+	// 			try {
+	// 				await fetch('/api/compress-photo', {
+	// 					method: 'POST',
+	// 					headers: { 'Content-Type': 'application/json' },
+	// 					body: JSON.stringify({ fileId: photo.id, fileName: photo.name }),
+	// 				})
+	// 				setCompressionProgress(prev => ({ ...prev, current: prev.current + 1 }))
+	// 			} catch (err) {
+	// 				console.error(`Nie udało się skompresować zdjęcia: ${photo.name}`, err)
+	// 				toast.error(`Błąd podczas kompresji zdjęcia ${photo.name}`)
+	// 			}
+	// 		}
+	// 		toast.success(`Kompresja zakończona! Zoptymalizowano ${photosToCompress.length} zdjęć.`)
+	// 	} catch (error: unknown) {
+	// 		let errorMessage = 'Wystąpił nieoczekiwany błąd.'
 
-			if (error instanceof Error) {
-				errorMessage = error.message
-			}
+	// 		if (error instanceof Error) {
+	// 			errorMessage = error.message
+	// 		}
 
-			toast.error(errorMessage)
-			console.error('Błąd podczas procesu kompresji:', error)
-		} finally {
-			setIsCompressing(false)
-		}
-	}
+	// 		toast.error(errorMessage)
+	// 		console.error('Błąd podczas procesu kompresji:', error)
+	// 	} finally {
+	// 		setIsCompressing(false)
+	// 	}
+	// }
 
 	return (
 		<div>
@@ -152,14 +152,14 @@ export function PhotoGrid({ photos, folderId }: { photos: Photo[]; folderId: str
 						}`}>
 						{isSettingCover ? 'Anuluj' : 'Zmień okładkę'}
 					</button>
-					<button
+					{/* <button
 						onClick={handleStartCompression}
 						disabled={isCompressing}
 						className='px-4 py-2 rounded-md text-sm font-semibold transition-colors bg-green-600 text-white hover:bg-green-700 disabled:bg-slate-400 disabled:cursor-wait'>
 						{isCompressing
 							? `Kompresowanie... ${compressionProgress.current}/${compressionProgress.total}`
 							: 'Skompresuj zdjęcia'}
-					</button>
+					</button> */}
 				</div>
 			</div>
 

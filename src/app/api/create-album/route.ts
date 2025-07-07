@@ -31,8 +31,17 @@ export async function POST(req: NextRequest) {
 			throw new Error(`Nie można utworzyć albumu, ponieważ nie znaleziono folderu dla klienta: ${session.user.email}`)
 		}
 
-		const formattedDate = new Date().toISOString().split('T')[0]
-		const newFolderName = `${formattedDate} ${title}`
+		let newFolderName: string
+		const dateRegex = /^\d{4}-\d{2}-\d{2}\s/
+
+		if (dateRegex.test(title)) {
+			newFolderName = title
+			console.log(`User provided a date in the title. Using as is: ${newFolderName}`)
+		} else {
+			const formattedDate = new Date().toISOString().split('T')[0]
+			newFolderName = `${formattedDate} ${title}`
+			console.log(`No date in title. Prepending current date: ${newFolderName}`)
+		}
 
 		const folderMetadata = {
 			name: newFolderName,
