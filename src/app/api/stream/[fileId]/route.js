@@ -1,6 +1,5 @@
 // src/app/api/stream/[fileId]/route.js
 
-import { NextRequest, NextResponse } from 'next/server'
 import { getDriveClient } from '@/lib/drive'
 
 export async function GET(request, { params }) {
