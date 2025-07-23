@@ -48,6 +48,7 @@ async function getAlbums(userEmail: string): Promise<Album[]> {
 		q: `'${clientFolderId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,
 		fields: 'files(id, name)',
 		orderBy: 'name desc',
+		pageSize: 1000,
 	})
 	const folders = foldersResponse.data.files
 	if (!folders || folders.length === 0) return []
