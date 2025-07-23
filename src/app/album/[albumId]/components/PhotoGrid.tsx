@@ -7,7 +7,19 @@ interface Photo {
 	id: string
 	name: string
 	thumbnailLink?: string | null
+	videoMediaMetadata?: object
 }
+
+const PlayIcon = () => (
+	<div className='absolute inset-0 flex items-center justify-center bg-black/20'>
+		<svg className='w-12 h-12 text-white/80' fill='currentColor' viewBox='0 0 20 20'>
+			<path
+				fillRule='evenodd'
+				d='M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z'
+				clipRule='evenodd'></path>
+		</svg>
+	</div>
+)
 
 export function PhotoGrid({ photos, folderId }: { photos: Photo[]; folderId: string }) {
 	const [isSettingCover, setIsSettingCover] = useState(false)
@@ -170,6 +182,7 @@ export function PhotoGrid({ photos, folderId }: { photos: Photo[]; folderId: str
 							{photo.thumbnailLink && (
 								<img src={photo.thumbnailLink} alt={photo.name} className='w-full h-full object-cover' />
 							)}
+							{photo.videoMediaMetadata && <PlayIcon />}
 						</div>
 						{isSettingCover && (
 							<div className='absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity'>
@@ -178,12 +191,14 @@ export function PhotoGrid({ photos, folderId }: { photos: Photo[]; folderId: str
 										e.stopPropagation()
 										handleSetCover(photo.id)
 									}}
-									disabled={isLoading === photo.id || currentCoverId === photo.id}
+									disabled={isLoading === photo.id || currentCoverId === photo.id || !!photo.videoMediaMetadata}
 									className='px-3 py-1.5 bg-white text-slate-900 text-xs font-bold rounded-full disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 transition-transform'>
 									{isLoading === photo.id
 										? 'Ustawianie...'
 										: currentCoverId === photo.id
 										? 'To jest okładka'
+										: photo.videoMediaMetadata
+										? 'To jest film'
 										: 'Ustaw jako okładkę'}
 								</button>
 							</div>
@@ -253,7 +268,15 @@ export function PhotoGrid({ photos, folderId }: { photos: Photo[]; folderId: str
 					</button>
 
 					<div className='relative w-full h-full max-w-screen-lg max-h-screen p-12' onClick={e => e.stopPropagation()}>
-						{photos[selectedPhotoIndex]?.thumbnailLink && (
+						{photos[selectedPhotoIndex]?.videoMediaMetadata ? (
+							<video
+								src={`/api/stream/${photos[selectedPhotoIndex].id}`}
+								controls
+								autoPlay
+								className='w-full h-full object-contain'>
+								Twoja przeglądarka nie obsługuje tagu wideo.
+							</video>
+						) : (
 							<img
 								src={photos[selectedPhotoIndex].thumbnailLink!.replace(/=s\d+/, '=s1600')}
 								alt={photos[selectedPhotoIndex].name}

@@ -24,11 +24,15 @@ export default async function AlbumPage({ params }: { params: Promise<{ albumId:
 
 	if (!hasCover && photos.length > 0) {
 		try {
-			const result = await setInitialCover(albumId, photos[0].id)
+			const firstImage = photos.find(p => !('videoMediaMetadata' in p))
 
-			const photoToUpdate = photos.find(p => p.id === photos[0].id)
-			if (photoToUpdate) {
-				photoToUpdate.name = result.newName
+			if (firstImage) {
+				const result = await setInitialCover(albumId, firstImage.id)
+
+				const photoToUpdate = photos.find(p => p.id === firstImage.id)
+				if (photoToUpdate) {
+					photoToUpdate.name = result.newName
+				}
 			}
 		} catch (error) {
 			console.error('Failed to auto-set cover on initial load:', error)

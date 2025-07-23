@@ -88,20 +88,23 @@ async function getAlbums(userEmail: string): Promise<Album[]> {
 				}
 			}
 
-			const imagesResponse = await drive.files.list({
-				q: `'${folder.id}' in parents and mimeType contains 'image/' and trashed=false`,
-				fields: 'files(id, name, thumbnailLink)',
+			const mediaResponse = await drive.files.list({
+				q: `'${folder.id}' in parents and (mimeType contains 'image/' or mimeType contains 'video/') and trashed=false`,
+
+				fields: 'files(id, name, thumbnailLink, videoMediaMetadata)',
 			})
 
 			let finalCoverUrl = null
-			if (imagesResponse.data.files && imagesResponse.data.files.length > 0) {
-				const allPhotos = imagesResponse.data.files
-				const coverPhoto = allPhotos.find(photo => photo.name && photo.name.includes('_cover'))
+			if (mediaResponse.data.files && mediaResponse.data.files.length > 0) {
+				const allMedia = mediaResponse.data.files
+				const coverMedia = allMedia.find(media => media.name && media.name.includes('_cover'))
 
-				if (coverPhoto) {
-					finalCoverUrl = coverPhoto.thumbnailLink
+				if (coverMedia) {
+					finalCoverUrl = coverMedia.thumbnailLink
 				} else {
-					finalCoverUrl = allPhotos[0].thumbnailLink
+					const firstImage = allMedia.find(media => !media.videoMediaMetadata)
+
+					finalCoverUrl = firstImage ? firstImage.thumbnailLink : allMedia[0].thumbnailLink
 				}
 			}
 

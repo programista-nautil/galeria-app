@@ -49,8 +49,8 @@ export async function getAlbumDetails(albumId: string): Promise<Album> {
 export async function getPhotos(albumId: string): Promise<Photo[]> {
 	const drive = getDriveClient()
 	const response = await drive.files.list({
-		q: `'${albumId}' in parents and mimeType contains 'image/' and trashed=false`,
-		fields: 'files(id, name, thumbnailLink)',
+		q: `'${albumId}' in parents and (mimeType contains 'image/' or mimeType contains 'video/') and trashed=false`,
+		fields: 'files(id, name, thumbnailLink, videoMediaMetadata)',
 		pageSize: 1000,
 	})
 
