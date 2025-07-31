@@ -3,11 +3,20 @@
 import { google, drive_v3 } from 'googleapis'
 import path from 'path'
 import { clientFolderMapping } from './permissions'
+import fs from 'fs'
 
 export function getDriveClient() {
-	const auth = new google.auth.GoogleAuth({
-		keyFile: path.join(process.cwd(), 'google-credentials.json'),
+	// =========ZMIANA: Używamy fs.readFileSync zamiast require()=========
+	const keyFilePath = path.join(process.cwd(), 'google-credentials.json')
+	const keyFileContent = fs.readFileSync(keyFilePath, 'utf8')
+	const credentials = JSON.parse(keyFileContent)
+	// =========KONIEC ZMIANY=========
+
+	const auth = new google.auth.JWT({
+		email: credentials.client_email,
+		key: credentials.private_key,
 		scopes: ['https://www.googleapis.com/auth/drive'],
+		subject: process.env.GOOGLE_ADMIN_EMAIL,
 	})
 
 	const drive = google.drive({ version: 'v3', auth })
