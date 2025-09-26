@@ -59,10 +59,25 @@ async function getAlbums(userEmail: string): Promise<Album[]> {
 
 			const correctDateRegex = /^\d{4}-\d{2}-\d{2} /
 			const oldIncorrectDateRegex = /^(\d{4}-\d{2}-\d{2})\s*[-–—]\s*/
+			const userDateRegex = /^(\d{2})-(\d{2})-(\d{4}) /
 
 			if (correctDateRegex.test(currentFolderName)) {
 			} else if (oldIncorrectDateRegex.test(currentFolderName)) {
 				const newFolderName = currentFolderName.replace(oldIncorrectDateRegex, '$1 ')
+
+				await drive.files.update({
+					fileId: folder.id!,
+					requestBody: { name: newFolderName },
+				})
+				currentFolderName = newFolderName
+			} else if (userDateRegex.test(currentFolderName)) {
+				// Wykryliśmy format DD-MM-RRRR, konwertujemy go na RRRR-MM-DD
+				const match = currentFolderName.match(userDateRegex)!
+				const day = match[1]
+				const month = match[2]
+				const year = match[3]
+				const restOfName = currentFolderName.substring(match[0].length)
+				const newFolderName = `${year}-${month}-${day} ${restOfName}`
 
 				await drive.files.update({
 					fileId: folder.id!,
