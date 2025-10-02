@@ -1,7 +1,6 @@
 import React from 'react';
 
 // Interfejs (definicja typów) dla wszystkich danych, jakie ten komponent przyjmuje
-// Pamiętaj: projekt używa TypeScript (.tsx), więc definiowanie typów jest kluczowe.
 interface PriceCardProps {
   title: string;
   subtitle: string;
@@ -10,9 +9,12 @@ interface PriceCardProps {
   period: string;
   features: string[];
   isPrimary: boolean;
-  savings?: string | null; //znak zapytania (?) do właściwości, które mogą nie występować
+  savings?: string | null;
   buttonText: string;
-  monthlyPrice?: number; // Mimo że używamy rocznej ceny, przekazujemy miesięczną dla elastyczności; znak zapytania (?) do właściwości, które mogą nie występować
+  // Opcjonalne pole, używane do wyświetlania mniejszej ceny miesięcznej pod ceną roczną
+  subPrice?: number | null; 
+  // Opcjonalne pole, używane do wyświetlania mniejszej jednostki
+  subPriceUnit?: string | null;
 }
 
 // Główny komponent kafelka cennika
@@ -26,19 +28,23 @@ const PriceCard: React.FC<PriceCardProps> = ({
   isPrimary,
   savings,
   buttonText,
+  subPrice,
+  subPriceUnit,
 }) => {
   
   // Warunkowe style dla wyróżnienia Planu PRO (Najpopularniejszy)
+  // Używamy białego tła dla wszystkich, ale PRO ma wyraźną niebieską ramkę
   const primaryClasses = isPrimary
-    ? 'bg-white ring-4 ring-blue-500 shadow-xl scale-[1.02] transform transition duration-300'
-    : 'bg-white shadow-lg';
+    ? 'bg-white relative ring-4 ring-blue-500 shadow-xl scale-[1.02] transform transition duration-300'
+    : 'bg-white shadow-lg relative';
   
+  // Style przycisków
   const buttonClasses = isPrimary
-    ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-md'
-    : 'bg-gray-100 hover:bg-gray-200 text-gray-800 border border-gray-300';
+    ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-md' // Plan PRO: Niebieski
+    : 'bg-gray-100 hover:bg-gray-200 text-gray-800 border border-gray-300'; // Pozostałe: Jasnoszary
 
   return (
-    // Główny kontener kafelek: zaokrąglenia, padding, dynamiczne cienie
+    // Główny kontener kafelek
     <div className={`flex flex-col rounded-xl p-8 transition duration-300 ease-in-out ${primaryClasses}`}>
       
       {/* Oznaczenie "Najpopularniejszy" */}
@@ -65,6 +71,13 @@ const PriceCard: React.FC<PriceCardProps> = ({
         </span>
       </div>
       
+      {/* CENA MIESIĘCZNA POD CENĄ ROCZNĄ (NOWA LOGIKA) */}
+      {subPrice && subPriceUnit && (
+        <p className="mt-1 text-sm text-gray-500">
+          {subPrice} {subPriceUnit}
+        </p>
+      )}
+
       {/* Sekcja Oszczędności (Savings) */}
       {savings && (
         <p className="mt-1 text-xs font-semibold text-green-600 italic">
@@ -79,7 +92,7 @@ const PriceCard: React.FC<PriceCardProps> = ({
           {features.map((feature) => (
             <li key={feature} className="flex items-start">
               <div className="flex-shrink-0">
-                {/* Ikona SVG dla cechy (Tailwind UI icon) */}
+                {/* Ikona SVG dla cechy */}
                 <svg
                   className={`h-6 w-6 ${isPrimary ? 'text-blue-500' : 'text-green-500'}`}
                   xmlns="http://www.w3.org/2000/svg"
@@ -113,4 +126,4 @@ const PriceCard: React.FC<PriceCardProps> = ({
   );
 };
 
-export default PriceCard; //KLUCZOWY EKSPORT, KTÓREGO BRAKOWAŁO!
+export default PriceCard; // Eksportujemy komponent, aby można go było używać w innych miejscach aplikacji

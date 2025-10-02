@@ -41,7 +41,7 @@ const PaymentToggle: React.FC<PaymentToggleProps> = ({ currentPeriod, onToggle }
           className={`z-10 px-6 py-2 text-sm font-medium rounded-full transition-colors duration-300 ${isMonthly ? 'text-gray-700 hover:text-gray-900' : 'text-white'}`}
           onClick={() => onToggle('yearly')}
         >
-          Rocznie (Oszczędność!)
+          Rocznie
         </button>
       </div>
     </div>
