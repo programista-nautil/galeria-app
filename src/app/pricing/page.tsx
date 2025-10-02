@@ -1,14 +1,16 @@
-import React from 'react';
-// Importujemy komponent PriceCard
-import PriceCard from './components/PriceCard';
+"use client"; // Włączam tryb klienta dla tego pliku
 
-// Definicja danych cennika, łącząca warianty płatności
+import React, { useState } from 'react';
+import PriceCard from './components/PriceCard';
+import PaymentToggle from './components/PaymentToggle'; // Importujemy nowy komponent
+
+// Definicja danych cennika
 const pricingData = [
   // 1. PAKIET WDROŻENIOWY (Opłata Jednorazowa)
   {
     title: 'Pakiet Wdrożeniowy',
     subtitle: 'Start Bez Frustracji.',
-    price: 450, // PLN netto
+    price: 450, 
     priceUnit: 'PLN netto',
     period: 'opłata jednorazowa',
     features: [
@@ -21,6 +23,8 @@ const pricingData = [
     isPrimary: false,
     savings: null,
     buttonText: 'Rozpocznij teraz',
+    // WAŻNE: Nie ma monthlyPrice, więc będzie traktowane jako undefined.
+    // Logika w getPlanDetails musi to obsłużyć.
   },
 
   // 2. PAKIET STANDARD (Łączymy roczny i miesięczny)
@@ -42,9 +46,7 @@ const pricingData = [
     isPrimary: false,
     savings: 'Płacąc rocznie, oszczędzasz 80 zł (2 miesiące gratis!)',
     buttonText: 'Wybieram STANDARD',
-    
-    // Dane dla przełącznika Miesiąc/Rok, jeśli go dodasz w komponencie PriceCard
-    monthlyPrice: 40,
+    monthlyPrice: 40, 
   },
 
   // 3. PAKIET ROZSZERZONY / PROFI (Najpopularniejszy)
@@ -64,48 +66,101 @@ const pricingData = [
     isPrimary: true, // Plan najpopularniejszy - wyróżniamy go!
     savings: 'Płacąc rocznie, oszczędzasz 120 zł (2 miesiące gratis!)',
     buttonText: 'Wybieram PROFI',
-    
-    // Dane dla przełącznika Miesiąc/Rok, jeśli go dodasz w komponencie PriceCard
     monthlyPrice: 60,
   },
 ];
 
+// Musimy zadeklarować typ, który zawiera price i opcjonalnie monthlyPrice,
+// aby TypeScript wiedział, jak się do niego odwołać.
+type PricingPlan = typeof pricingData[0] & { monthlyPrice?: number };
+
+
 export default function PricingPage() {
-  // Pamiętaj: ten komponent PriceCard.tsx musi istnieć, aby to działało!
+  // 1. STAN: Domyślnie ustawiamy płatność roczną (tańszą)
+  const [paymentPeriod, setPaymentPeriod] = useState<'monthly' | 'yearly'>('yearly');
+
+  // 2. FUNKCJA DO POBIERANIA AKTUALNYCH DANYCH - uzywamy PricingPlan jako typu
+  const getPlanDetails = (plan: PricingPlan) => {
+    
+    // Dla wszystkich planów: dynamiczna zmiana cen na podstawie stanu
+    const isYearly = paymentPeriod === 'yearly';
+    
+    // Logika ceny:
+    let finalPrice = plan.price;
+    let finalPeriod = plan.period;
+    let finalSavings = plan.savings;
+
+    // Próba przełączenia ceny TYLKO jeśli plan ma opcję miesięczną (monthlyPrice)
+    if (plan.monthlyPrice !== undefined) {
+        if (isYearly) {
+            // Cena roczna (niższa, z oszczędnościami)
+            finalPrice = plan.price;
+            finalPeriod = 'miesiąc (płatne rocznie)';
+            finalSavings = plan.savings;
+        } else {
+            // Cena miesięczna (wyższa, bez oszczędności)
+            finalPrice = plan.monthlyPrice;
+            finalPeriod = 'miesiąc (płatne co miesiąc)';
+            finalSavings = null;
+        }
+    }
+    // Jeśli monthlyPrice jest undefined (np. Pakiet Wdrożeniowy), zostawiamy finalPrice = plan.price, 
+    // a period i savings zostają stałe (tak jak są zdefiniowane w pricingData).
+
+    return {
+      price: finalPrice,
+      period: finalPeriod,
+      savings: finalSavings,
+    };
+  };
+
+
   return (
     // Używamy stylów z głównej strony Nautil (tło, wyśrodkowanie)
     <div className="min-h-screen bg-white py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         
-        {/* Nagłówek i opis - używamy tekstu z pliku Word */}
+        {/* Nagłówek i opis */}
         <div className="text-center mb-16">
           <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl">
             Wybierz plan idealny dla siebie
           </h1>
-          {/* Opcjonalny opis, którego nie było w nagłówku, ale dobrze jest go dodać */}
           <p className="mt-3 max-w-2xl mx-auto text-xl text-gray-500">
             Pełna kontrola nad Twoimi galeriami. Płać elastycznie - co miesiąc lub oszczędzaj, wybierając płatność roczną.
           </p>
         </div>
 
-        {/* Sekcja Kafelków Cennika - Używamy Tailwinda (grid) dla 3 kafelków */}
+        {/* 3. WŁĄCZENIE KOMPONENTU PRZEŁĄCZNIKA */}
+        <PaymentToggle 
+          currentPeriod={paymentPeriod} 
+          onToggle={setPaymentPeriod} // Przekazujemy funkcję do zmiany stanu
+        />
+
+        {/* Sekcja Kafelków Cennika */}
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-          {pricingData.map((plan) => (
-            <PriceCard
-              key={plan.title}
-              title={plan.title}
-              subtitle={plan.subtitle}
-              price={plan.price}
-              priceUnit={plan.priceUnit}
-              period={plan.period}
-              features={plan.features}
-              isPrimary={plan.isPrimary}
-              savings={plan.savings}
-              buttonText={plan.buttonText}
-              // Przekazujemy cenę miesięczną, na wypadek gdybyś chciał później dodać przełącznik
-              monthlyPrice={plan.monthlyPrice}
-            />
-          ))}
+          {pricingData.map((plan) => {
+            // 4. Używamy dynamicznych detali cen
+            const details = getPlanDetails(plan as PricingPlan); 
+            
+            return (
+              <PriceCard
+                key={plan.title}
+                title={plan.title}
+                subtitle={plan.subtitle}
+                
+                // 5. Używamy dynamicznych wartości
+                price={details.price} // ZAWSZE jest liczbą dzięki poprawce w getPlanDetails
+                period={details.period}
+                savings={details.savings}
+                
+                // Używamy stałych wartości
+                priceUnit={plan.priceUnit}
+                features={plan.features}
+                isPrimary={plan.isPrimary}
+                buttonText={plan.buttonText}
+              />
+            );
+          })}
         </div>
       </div>
     </div>
