@@ -10,9 +10,9 @@ interface PriceCardProps {
   period: string;
   features: string[];
   isPrimary: boolean;
-  savings: string | null;
+  savings?: string | null; //znak zapytania (?) do właściwości, które mogą nie występować
   buttonText: string;
-  monthlyPrice: number; // Mimo że używamy rocznej ceny, przekazujemy miesięczną dla elastyczności
+  monthlyPrice?: number; // Mimo że używamy rocznej ceny, przekazujemy miesięczną dla elastyczności; znak zapytania (?) do właściwości, które mogą nie występować
 }
 
 // Główny komponent kafelka cennika
@@ -113,4 +113,4 @@ const PriceCard: React.FC<PriceCardProps> = ({
   );
 };
 
-export default PriceCard; // 👈 KLUCZOWY EKSPORT, KTÓREGO BRAKOWAŁO!
+export default PriceCard; //KLUCZOWY EKSPORT, KTÓREGO BRAKOWAŁO!
