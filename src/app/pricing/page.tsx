@@ -8,8 +8,8 @@ import PaymentToggle from './components/PaymentToggle';
 const pricingData = [
   // 1. PAKIET WDROŻENIOWY (Opłata Jednorazowa)
   {
-    title: 'Pakiet Wdrożeniowy',
-    subtitle: 'Start Bez Frustracji.',
+    title: 'Pakiet Wdrożenie',
+    subtitle: 'Start Bez Frustracji. Oferujemy pełną pomoc i wsparcie, abyś mógł rozpocząć od razu.',
     price: 450, 
     priceUnit: 'PLN netto',
     period: 'opłata jednorazowa',
