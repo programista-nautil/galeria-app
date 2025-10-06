@@ -31,77 +31,89 @@ const PriceCard: React.FC<PriceCardProps> = ({
 }) => {
   
   // Warunkowe style dla wyróżnienia Planu PROFI
-  const baseClasses = 'flex flex-col rounded-xl p-8 transition duration-300 ease-in-out border border-gray-200 relative';
+  // Zwiększamy padding do p-10 (więcej "powietrza")
+  const baseClasses = 'flex flex-col rounded-xl p-10 transition duration-500 ease-in-out border border-gray-200 relative';
   
-  // Mocniejsze style dla Planu PROFI (isPrimary)
+  // Mocniejsze style dla Planu PROFI (isPrimary) - użycie gradientu dla lepszego efektu
   const primaryClasses = isPrimary
-    ? 'bg-blue-600/5 ring-2 ring-blue-600 shadow-xl scale-[1.02] transform' // Lekko niebieskie tło, mocna ramka
-    : 'bg-white shadow-lg hover:shadow-xl hover:scale-[1.01]'; // Białe tło, wyraźny cień
+    // gradient-to-br i customowe kolory tła w css (zastępujemy go w Tailwind)
+    ? 'bg-gradient-to-br from-blue-50 to-white ring-2 ring-blue-600 shadow-2xl scale-[1.04] transform z-10' 
+    // Plan Wdrożeniowy i Standard: delikatne tło, wyraźny cień, efekt hover
+    : 'bg-gray-50 shadow-xl hover:shadow-2xl hover:scale-[1.02] transform'; 
     
-  // Style przycisków
+  // Style przycisków - mocniejszy cień dla PROFI
   const buttonClasses = isPrimary
-    ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg font-bold' // Plan PROFI: Mocny niebieski
-    : 'bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300 font-medium'; // Reszta: Czysty, jasny przycisk
+    ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/50 shadow-xl font-bold uppercase tracking-wider' 
+    : 'bg-gray-200 hover:bg-gray-300 text-gray-800 border-2 border-transparent font-medium';
 
-  // ******* ZMIANY TUTAJ: Poprawa kontrastu dla isPrimary (WCAG) *******
+  // Kolory tekstu (z WCAG fix, ale dopasowane do nowych, mocniejszych stylów)
   const titleColor = 'text-gray-900';
-  const subtitleColor = isPrimary ? 'text-gray-600' : 'text-gray-500';
-  const priceColor = 'text-gray-900'; // ZAWSZE CIEMNY
-  const priceUnitColor = isPrimary ? 'text-gray-700' : 'text-gray-600'; // CIEMNIEJSZY NIŻ WCZEŚNIEJ
-  const periodColor = isPrimary ? 'text-gray-600' : 'text-gray-500'; // CIEMNIEJSZY NIŻ WCZEŚNIEJ
+  const subtitleColor = isPrimary ? 'text-gray-700' : 'text-gray-500';
+  const priceColor = 'text-gray-900'; 
+  const priceUnitColor = isPrimary ? 'text-gray-700' : 'text-gray-600'; 
+  const periodColor = isPrimary ? 'text-gray-600' : 'text-gray-500'; 
   const featureTextColor = 'text-gray-700';
-  // ******* KONIEC ZMIAN *******
 
   return (
     // Główny kontener kafelek
     <div className={`${baseClasses} ${primaryClasses}`}>
       
-      {/* Oznaczenie "Najpopularniejszy" */}
+      {/* Oznaczenie "Najpopularniejszy" - dodajemy mocniejszy cień */}
       {isPrimary && (
-        <p className="absolute top-0 right-0 -mt-4 mr-4 rounded-full bg-blue-600 px-3 py-1 text-sm font-semibold uppercase tracking-wider text-white shadow-md">
+        <p className="absolute top-0 right-0 -mt-4 mr-4 rounded-full bg-blue-600 px-3 py-1 text-sm font-semibold uppercase tracking-wider text-white shadow-xl">
           Najpopularniejszy
         </p>
       )}
 
       
-      {/* Tytuł i Podtytuł */}
-      <h3 className={`text-2xl font-extrabold ${titleColor}`}>{title}</h3>
-      <p className={`mt-2 text-sm ${subtitleColor} min-h-[40px]`}>{subtitle}</p>
+      {/* Tytuł i Podtytuł - zwiększamy rozmiar tytułu do text-2xl/3xl i minimalną wysokość na równe karty */}
+      <h3 className={`text-3xl font-extrabold ${titleColor}`}>{title}</h3>
+      <p className={`mt-2 text-base ${subtitleColor} min-h-[40px] leading-snug`}>{subtitle}</p>
 
-      {/* Sekcja Głównej Ceny - teraz ZAWSZE CIEMNA */}
-      <div className="mt-4 flex items-baseline">
-        <span className={`text-5xl font-extrabold tracking-tight ${priceColor}`}>
+      {/* ---------------------------------------------------- */}
+      {/* SEKCJA GŁÓWNEJ CENY - POPRAWIONE WYRÓWNANIE! */}
+      {/* Używamy flex items-start, a mniejsze teksty są w kolumnie */}
+      <div className="mt-6 flex items-start">
+        {/* 1. Główna, duża cena */}
+        <span className={`text-6xl font-extrabold tracking-tight ${priceColor}`}>
           {price}
         </span>
-        <span className={`ml-1 text-xl font-medium ${priceUnitColor}`}>
-          {priceUnit}
-        </span>
-        <span className={`ml-2 text-base ${periodColor}`}>
-          {period}
-        </span>
+        
+        {/* 2. Małe napisy (jednostka i okres) w kolumnie, wyrównane do góry */}
+        <div className="ml-2 flex flex-col pt-1"> 
+          {/* Jednostka - nieco mniejsza (text-xl) */}
+          <span className={`text-xl font-medium ${priceUnitColor} whitespace-nowrap`}> 
+            {priceUnit}
+          </span>
+          {/* Okres - najmniejszy (text-sm) */}
+          <span className={`text-sm ${periodColor} whitespace-nowrap`}> 
+            {period}
+          </span>
+        </div>
       </div>
+      {/* ---------------------------------------------------- */}
       
-      {/* CENA PEŁNA ROCZNA (subPrice) - Dyskretny, ale czytelny dopisek */}
+      {/* CENA PEŁNA ROCZNA (subPrice) */}
       {subPrice && subPriceUnit && (
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-2 text-sm text-gray-500">
           <span className="font-semibold text-gray-700">{subPrice}</span> {subPriceUnit}
         </p>
       )}
 
-      {/* Sekcja Oszczędności (Savings) - Używamy zielonego koloru dla pozytywnego akcentu */}
+      {/* Sekcja Oszczędności (Savings) */}
       {savings && (
-        <p className="mt-2 text-xs font-semibold text-green-700 italic">
+        <p className="mt-3 text-sm font-semibold text-green-700 italic">
           {savings}
         </p>
       )}
 
-      {/* Separator / Lista Cech */}
-      <div className="mt-6 flex-1 pt-4 border-t border-gray-100"> 
+      {/* Separator / Lista Cech - Więcej odstępu i grubsza linia */}
+      <div className="mt-8 flex-1 pt-6 border-t border-gray-200"> 
         <ul role="list" className="space-y-4">
           {features.map((feature) => (
             <li key={feature} className="flex items-start">
               <div className="flex-shrink-0">
-                {/* Ikona SVG dla cechy - zostaje niebieski, bo to mały, niekrytyczny akcent */}
+                {/* Ikona SVG dla cechy - Zostawiamy niebieską */}
                 <svg
                   className={`h-6 w-6 text-blue-600`}
                   xmlns="http://www.w3.org/2000/svg"
@@ -124,10 +136,10 @@ const PriceCard: React.FC<PriceCardProps> = ({
         </ul>
       </div>
 
-      {/* Przycisk Akcji */}
+      {/* Przycisk Akcji - Dodajemy większy padding wertykalny (py-4) */}
       <a
         href="#"
-        className={`mt-8 block w-full py-3 px-6 border border-transparent rounded-lg text-center transition duration-150 ease-in-out ${buttonClasses}`}
+        className={`mt-10 block w-full py-4 px-6 border border-transparent rounded-lg text-center transition duration-150 ease-in-out ${buttonClasses}`}
       >
         {buttonText}
       </a>

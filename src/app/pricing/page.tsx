@@ -49,7 +49,7 @@ const pricingData = [
 
   // 3. PAKIET ROZSZERZONY / PROFI (Najpopularniejszy)
   {
-    title: 'Plan PROFI (Najpopularniejszy)',
+    title: 'Plan PROFI',
     subtitle: 'Moc Nielimitowanych Możliwości. Najczęściej wybierany przez Fundacje.',
     price: 50, // Miesięczna cena przy płatności rocznej (tańszy wariant)
     priceUnit: 'PLN netto',
@@ -113,7 +113,6 @@ export default function PricingPage() {
 
   return (
     // Zmieniamy tło na białe i w kontenerze dodajemy ciemne kolory dla motywu Nautil
-    // UWAGA: Tło całości ma być teraz białe, nie beżowe.
     <div className="min-h-screen bg-gray-50 py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         
@@ -134,7 +133,7 @@ export default function PricingPage() {
         />
 
         {/* Sekcja Kafelków Cennika */}
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-3 items-stretch"> 
           {pricingData.map((plan) => {
             const details = getPlanDetails(plan as PricingPlan);
             return (
