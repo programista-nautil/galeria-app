@@ -79,6 +79,8 @@ export default function PricingPage() {
     let finalPrice = plan.price;
     let finalPeriod = plan.period;
     let finalSavings = plan.savings;
+
+    // Obliczanie pełnej kwoty rocznej dla użytkowników wybierających płatność roczną
     let finalSubPrice: number | undefined = undefined; // NOWY STAN
     let finalSubPriceUnit: string | undefined = undefined; // NOWY STAN
 
@@ -104,7 +106,7 @@ export default function PricingPage() {
       price: finalPrice,
       period: finalPeriod,
       savings: finalSavings,
-      // Przekazujemy nowe opcjonalne pola
+      // Przekazuję nowe opcjonalne pola
       subPrice: finalSubPrice,
       subPriceUnit: finalSubPriceUnit,
     };
@@ -112,7 +114,7 @@ export default function PricingPage() {
 
 
   return (
-    // Zmieniamy tło na białe i w kontenerze dodajemy ciemne kolory dla motywu Nautil
+    // Zmieniam tło na białe i w kontenerze dodajemy ciemne kolory dla motywu Nautil
     <div className="min-h-screen bg-gray-50 py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         
@@ -142,16 +144,16 @@ export default function PricingPage() {
                 title={plan.title}
                 subtitle={plan.subtitle}
                 
-                // Używamy dynamicznych wartości
+                // Używam dynamicznych wartości
                 price={details.price}
                 period={details.period}
                 savings={details.savings}
                 
-                // Używamy nowych, opcjonalnych wartości
+                // Używam nowych, opcjonalnych wartości
                 subPrice={details.subPrice}
                 subPriceUnit={details.subPriceUnit}
                 
-                // Używamy stałych wartości
+                // Używam stałych wartości
                 priceUnit={plan.priceUnit}
                 features={plan.features}
                 isPrimary={plan.isPrimary}
