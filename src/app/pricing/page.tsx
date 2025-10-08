@@ -1,13 +1,11 @@
-// app/pricing/page.tsx (W pełni poprawiony)
-
-"use client"; // Włączam tryb klienta dla tego pliku
+"use client"; 
 
 import React, { useState } from 'react';
 import PriceCard from './components/PriceCard';
 import PaymentToggle from './components/PaymentToggle';
-import Link from 'next/link'; // <--- NOWY IMPORT DLA LOGO/LINKU
+import Link from 'next/link'; 
 
-// Definicja danych cennika (bez zmian, używamy danych z pliku)
+// Definicja danych cennika (używamy Twojej zaktualizowanej wersji)
 const pricingData = [
   // 1. PAKIET WDROŻENIOWY (Opłata Jednorazowa)
   {
@@ -32,7 +30,7 @@ const pricingData = [
   {
     title: 'Pakiet STANDARD',
     subtitle: 'Profesjonalizm na Co Dzień. Idealny dla umiarkowanej ilości zdjęć.',
-    price: 33, // Miesięczna cena przy płatności rocznej
+    price: 33, 
     priceUnit: 'PLN netto',
     period: 'miesiąc',
     features: [
@@ -54,7 +52,7 @@ const pricingData = [
   {
     title: 'Plan PROFI',
     subtitle: 'Moc Nielimitowanych Możliwości. Najczęściej wybierany przez Fundacje.',
-    price: 50, // Miesięczna cena przy płatności rocznej
+    price: 50, 
     priceUnit: 'PLN netto',
     period: 'miesiąc (płatne rocznie)',
     features: [
@@ -75,32 +73,26 @@ type PricingPlan = typeof pricingData[0] & { monthlyPrice?: number };
 
 export default function PricingPage() {
   
-  // STAN: Domyślnie ustawiamy płatność roczną ('yearly') [cite: 75, 76]
   const [paymentPeriod, setPaymentPeriod] = useState<'monthly' | 'yearly'>('yearly');
 
-  // FUNKCJA DO POBIERANIA AKTUALNYCH DANYCH (Punkt 4: Odwrócenie logiki cen)
+  // FUNKCJA DO POBIERANIA AKTUALNYCH DANYCH (Logika cen)
   const getPlanDetails = (plan: PricingPlan) => {
     
     const isYearly = paymentPeriod === 'yearly';
     let finalPrice = plan.price;
     let finalPeriod = plan.period;
     let finalSavings = plan.savings;
-    // Nowe pola do wyświetlania mniejszej ceny
     let finalSubPrice: number | undefined = undefined; 
     let finalSubPriceUnit: string | undefined = undefined;
 
     if (plan.monthlyPrice !== undefined) {
         if (isYearly) {
-            // CENA GŁÓWNA (DUŻA): Pełna kwota roczna
-            finalPrice = plan.price * 12; // np. 33 * 12 = 396
+            finalPrice = plan.price * 12; 
             finalPeriod = 'rocznie'; 
             finalSavings = plan.savings;
-            
-            // CENA MALA (SUBPRICE): Przeliczenie miesięczne (np. 33)
             finalSubPrice = plan.price; 
             finalSubPriceUnit = 'miesiąc'; 
         } else {
-            // Cena miesięczna (wyższa, bez oszczędności)
             finalPrice = plan.monthlyPrice; 
             finalPeriod = 'miesiąc';
             finalSavings = null;
@@ -108,71 +100,75 @@ export default function PricingPage() {
             finalSubPriceUnit = undefined; 
         }
     }
-    // Pakiet Wdrożeniowy (jednorazowy) pozostaje bez zmian
 
     return {
       price: finalPrice,
       period: finalPeriod,
       savings: finalSavings,
-      subPrice: finalSubPrice, // Przekazujemy do PriceCard
-      subPriceUnit: finalSubPriceUnit, // Przekazujemy do PriceCard
+      subPrice: finalSubPrice, 
+      subPriceUnit: finalSubPriceUnit, 
     };
   };
 
 
   return (
+    // Główny kontener strony (bg-slate-50)
     <div className="min-h-screen bg-slate-50"> 
         
-        {/* NAGŁÓWEK I LOGO (Punkt 5 i część Punktu 2) */}
-        <header className='container mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8'>
-          <Link href='/'>
-            <img src={'/nautil-logo-czarne.svg'} alt='Logo Nautil' className='h-12 w-auto' />
-          </Link>
-        </header>
+        {/* KONTENER WIRTUANY ODPOWIEDZIALNY ZA WYŚRODKOWANIE WSZYSTKIEGO (JAK NA STRONIE GŁÓWNEJ) */}
+        <div className='flex-grow container mx-auto'>
+            {/* NAGŁÓWEK Z PADDINGAMI (Punkt 5) 
+              Nie ma tu klasy 'container mx-auto', by unikać podwójnego centrowania.
+            */}
+            <header className='px-4 sm:px-6 lg:px-16 py-6 lg:py-8 shrink-0'>
+                <Link href='/'>
+                    <img src={'/nautil-logo-czarne.svg'} alt='Logo Nautil' className='h-12 w-auto' />
+                </Link>
+            </header>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
-          
-          {/* Nagłówek i opis */}
-          <div className="text-center mb-16">
-            <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl">
-              Wybierz plan idealny dla siebie
-            </h1>
-            <p className="mt-3 max-w-2xl mx-auto text-xl text-gray-500">
-              Pełna kontrola nad Twoimi galeriami. Płać elastycznie - co miesiąc lub oszczędzaj, wybierając płatność roczną.
-            </p>
-          </div>
+            {/* GŁÓWNA TREŚĆ STRONY (wyśrodkowany cennik) */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+              
+                {/* Nagłówek i opis */}
+                <div className="text-center mb-16">
+                    <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl">
+                        Wybierz plan idealny dla siebie
+                    </h1>
+                    <p className="mt-3 max-w-2xl mx-auto text-xl text-gray-500">
+                        Pełna kontrola nad Twoimi galeriami. Płać elastycznie - co miesiąc lub oszczędzaj, wybierając płatność roczną.
+                    </p>
+                </div>
 
-          {/* PRZEŁĄCZNIK */}
-          <PaymentToggle 
-            currentPeriod={paymentPeriod} 
-            onToggle={setPaymentPeriod} 
-          />
-
-          {/* Sekcja Kafelków Cennika */}
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-            {pricingData.map((plan) => {
-              const details = getPlanDetails(plan as PricingPlan);
-              return (
-                <PriceCard
-                  key={plan.title}
-                  title={plan.title}
-                  subtitle={plan.subtitle}
-                  priceUnit={plan.priceUnit}
-                  features={plan.features}
-                  isPrimary={plan.isPrimary}
-                  buttonText={plan.buttonText}
-                  
-                  // Używamy dynamicznych wartości i nowych propsów
-                  price={details.price} 
-                  period={details.period}
-                  savings={details.savings}
-                  subPrice={details.subPrice} // NOWY PROP
-                  subPriceUnit={details.subPriceUnit} // NOWY PROP
+                {/* PRZEŁĄCZNIK */}
+                <PaymentToggle 
+                    currentPeriod={paymentPeriod} 
+                    onToggle={setPaymentPeriod} 
                 />
-              );
-            })}
-          </div>
+
+                {/* Sekcja Kafelków Cennika */}
+                <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+                    {pricingData.map((plan) => {
+                        const details = getPlanDetails(plan as PricingPlan);
+                        return (
+                            <PriceCard
+                                key={plan.title}
+                                title={plan.title}
+                                subtitle={plan.subtitle}
+                                priceUnit={plan.priceUnit}
+                                features={plan.features}
+                                isPrimary={plan.isPrimary}
+                                buttonText={plan.buttonText}
+                                price={details.price} 
+                                period={details.period}
+                                savings={details.savings}
+                                subPrice={details.subPrice} 
+                                subPriceUnit={details.subPriceUnit} 
+                            />
+                        );
+                    })}
+                </div>
+            </div>
         </div>
-      </div>
+    </div>
   );
 }
