@@ -15,7 +15,7 @@ const pricingData = [
     subtitle: 'Start Bez Frustracji.',
     price: 450, 
     priceUnit: 'PLN netto',
-    period: 'opłata jednorazowa',
+    period: 'jednorazowo',
     features: [
       'Przygotowanie aplikacji',
       'Połączenie z kontem Google',
@@ -34,7 +34,7 @@ const pricingData = [
     subtitle: 'Profesjonalizm na Co Dzień. Idealny dla umiarkowanej ilości zdjęć.',
     price: 33, // Miesięczna cena przy płatności rocznej
     priceUnit: 'PLN netto',
-    period: 'miesiąc (płatne rocznie)',
+    period: 'miesiąc',
     features: [
       'Profesjonalna galeria',
       'Automatyczne porządkowanie zdjęć',
@@ -52,7 +52,7 @@ const pricingData = [
 
   // 3. PAKIET PROFI (Najpopularniejszy)
   {
-    title: 'Plan PROFI (Najpopularniejszy)',
+    title: 'Plan PROFI',
     subtitle: 'Moc Nielimitowanych Możliwości. Najczęściej wybierany przez Fundacje.',
     price: 50, // Miesięczna cena przy płatności rocznej
     priceUnit: 'PLN netto',
@@ -93,16 +93,16 @@ export default function PricingPage() {
         if (isYearly) {
             // CENA GŁÓWNA (DUŻA): Pełna kwota roczna
             finalPrice = plan.price * 12; // np. 33 * 12 = 396
-            finalPeriod = 'kwota roczna'; 
+            finalPeriod = 'rocznie'; 
             finalSavings = plan.savings;
             
             // CENA MALA (SUBPRICE): Przeliczenie miesięczne (np. 33)
             finalSubPrice = plan.price; 
-            finalSubPriceUnit = 'miesiąc (płatne rocznie)'; 
+            finalSubPriceUnit = 'miesiąc'; 
         } else {
             // Cena miesięczna (wyższa, bez oszczędności)
             finalPrice = plan.monthlyPrice; 
-            finalPeriod = 'miesiąc (płatne co miesiąc)';
+            finalPeriod = 'miesiąc';
             finalSavings = null;
             finalSubPrice = undefined; 
             finalSubPriceUnit = undefined; 

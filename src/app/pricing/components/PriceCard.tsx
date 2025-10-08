@@ -1,8 +1,6 @@
-// app/pricing/components/PriceCard.tsx (W pełni poprawiony)
-
 import React from 'react';
 
-// Interfejs z nowymi opcjonalnymi polami [cite: 97, 98]
+// Interfejs z nowymi opcjonalnymi polami
 interface PriceCardProps {
   title: string;
   subtitle: string;
@@ -31,19 +29,24 @@ const PriceCard: React.FC<PriceCardProps> = ({
   subPriceUnit,
 }) => {
   
-  // FIX 3: Poprawa kontrastu - dodajemy wyraźną ramkę i cień dla kart nie-primary
+  // 1. Cienie i tło dla kafelków
+  const baseClasses = 'flex flex-col rounded-xl p-8 transition duration-500 ease-in-out border border-gray-200 relative';
+  
   const primaryClasses = isPrimary
-    ? 'bg-white relative ring-4 ring-blue-500 shadow-2xl scale-[1.02] transform transition duration-300 z-10'
-    : 'bg-white shadow-xl relative border border-gray-300 hover:shadow-2xl hover:scale-[1.01] transform transition duration-300'; 
+    // PROFI: Mocny cień i niebieska ramka
+    ? `${baseClasses} ring-4 ring-blue-500 shadow-2xl scale-[1.02] transform z-10 bg-white` 
+    // STANDARD/Wdrożeniowy: Bardziej wyrazisty cień i efekt uniesienia na hoverze
+    : `${baseClasses} shadow-xl hover:shadow-2xl hover:scale-[1.01] transform bg-white`; 
   
-  
-  // Style przycisków
+  // 2. Styl przycisków (FINALNY KONTRAST FIX)
   const buttonClasses = isPrimary
-    ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg' 
-    : 'bg-gray-100 hover:bg-gray-200 text-gray-800 border border-gray-300'; 
+    ? 'bg-gradient-to-b from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg font-bold uppercase tracking-wider' // PROFI: Mocny gradient
+    
+    // STANDARD/Wdrożeniowy: JASNOSZARY przycisk bazowy, który wyraźnie odróżnia się od białej karty (bg-gray-100)
+    : 'bg-gray-100 hover:bg-gray-200 text-gray-800 border-2 border-gray-300 shadow-sm hover:shadow-md font-medium'; 
 
   return (
-    <div className={`flex flex-col rounded-xl p-8 ${primaryClasses}`}>
+    <div className={primaryClasses}>
       
       {/* Oznaczenie "Najpopularniejszy" */}
       {isPrimary && (
@@ -57,7 +60,7 @@ const PriceCard: React.FC<PriceCardProps> = ({
       <h3 className="text-2xl font-bold text-gray-900">{title}</h3>
       <p className="mt-2 text-sm text-gray-500 min-h-[40px]">{subtitle}</p>
 
-      {/* Sekcja Głównej Ceny (teraz ROZMIAR KROPNY, np. 396 PLN netto) */}
+      {/* Sekcja Głównej Ceny (ROZMIAR KROPNY) */}
       <div className="mt-4 flex items-baseline"> 
         <span className="text-5xl font-extrabold tracking-tight text-gray-900">
           {price}
