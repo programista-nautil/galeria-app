@@ -1,15 +1,18 @@
-"use client";
+// app/pricing/page.tsx (W pełni poprawiony)
+
+"use client"; // Włączam tryb klienta dla tego pliku
 
 import React, { useState } from 'react';
 import PriceCard from './components/PriceCard';
 import PaymentToggle from './components/PaymentToggle';
+import Link from 'next/link'; // <--- NOWY IMPORT DLA LOGO/LINKU
 
-// Definicja danych cennika
+// Definicja danych cennika (bez zmian, używamy danych z pliku)
 const pricingData = [
   // 1. PAKIET WDROŻENIOWY (Opłata Jednorazowa)
   {
-    title: 'Pakiet Wdrożenie',
-    subtitle: 'Start Bez Frustracji. Oferujemy pełną pomoc i wsparcie, abyś mógł rozpocząć od razu.',
+    title: 'Pakiet Wdrożeniowy',
+    subtitle: 'Start Bez Frustracji.',
     price: 450, 
     priceUnit: 'PLN netto',
     period: 'opłata jednorazowa',
@@ -25,11 +28,11 @@ const pricingData = [
     buttonText: 'Rozpocznij teraz',
   },
 
-  // 2. PAKIET STANDARD (Łączymy roczny i miesięczny)
+  // 2. PAKIET STANDARD 
   {
     title: 'Pakiet STANDARD',
     subtitle: 'Profesjonalizm na Co Dzień. Idealny dla umiarkowanej ilości zdjęć.',
-    price: 33, // Miesięczna cena przy płatności rocznej (tańszy wariant)
+    price: 33, // Miesięczna cena przy płatności rocznej
     priceUnit: 'PLN netto',
     period: 'miesiąc (płatne rocznie)',
     features: [
@@ -47,11 +50,11 @@ const pricingData = [
     monthlyPrice: 40, 
   },
 
-  // 3. PAKIET ROZSZERZONY / PROFI (Najpopularniejszy)
+  // 3. PAKIET PROFI (Najpopularniejszy)
   {
-    title: 'Plan PROFI',
+    title: 'Plan PROFI (Najpopularniejszy)',
     subtitle: 'Moc Nielimitowanych Możliwości. Najczęściej wybierany przez Fundacje.',
-    price: 50, // Miesięczna cena przy płatności rocznej (tańszy wariant)
+    price: 50, // Miesięczna cena przy płatności rocznej
     priceUnit: 'PLN netto',
     period: 'miesiąc (płatne rocznie)',
     features: [
@@ -61,7 +64,7 @@ const pricingData = [
       'Priorytetowe wsparcie techniczne',
       'Dodatkowe szablony galerii',
     ],
-    isPrimary: true, // Plan najpopularniejszy - wyróżniamy go!
+    isPrimary: true,
     savings: 'Płacąc rocznie, oszczędzasz 120 zł (2 miesiące gratis!)',
     buttonText: 'Wybieram PROFI',
     monthlyPrice: 60,
@@ -71,98 +74,105 @@ const pricingData = [
 type PricingPlan = typeof pricingData[0] & { monthlyPrice?: number };
 
 export default function PricingPage() {
+  
+  // STAN: Domyślnie ustawiamy płatność roczną ('yearly') [cite: 75, 76]
   const [paymentPeriod, setPaymentPeriod] = useState<'monthly' | 'yearly'>('yearly');
 
+  // FUNKCJA DO POBIERANIA AKTUALNYCH DANYCH (Punkt 4: Odwrócenie logiki cen)
   const getPlanDetails = (plan: PricingPlan) => {
     
     const isYearly = paymentPeriod === 'yearly';
     let finalPrice = plan.price;
     let finalPeriod = plan.period;
     let finalSavings = plan.savings;
-
-    // Obliczanie pełnej kwoty rocznej dla użytkowników wybierających płatność roczną
-    let finalSubPrice: number | undefined = undefined; // NOWY STAN
-    let finalSubPriceUnit: string | undefined = undefined; // NOWY STAN
+    // Nowe pola do wyświetlania mniejszej ceny
+    let finalSubPrice: number | undefined = undefined; 
+    let finalSubPriceUnit: string | undefined = undefined;
 
     if (plan.monthlyPrice !== undefined) {
         if (isYearly) {
-            // Cena roczna (niższa, z oszczędnościami)
-            finalPrice = plan.price; // np. 33
-            finalPeriod = 'miesiąc (płatne rocznie)';
+            // CENA GŁÓWNA (DUŻA): Pełna kwota roczna
+            finalPrice = plan.price * 12; // np. 33 * 12 = 396
+            finalPeriod = 'kwota roczna'; 
             finalSavings = plan.savings;
             
-            // NOWA LOGIKA: Obliczamy pełną kwotę roczną dla wyświetlenia jako dopisek
-            finalSubPrice = plan.price * 12; // np. 33 * 12 = 396
-            finalSubPriceUnit = `PLN netto (kwota roczna)`;
+            // CENA MALA (SUBPRICE): Przeliczenie miesięczne (np. 33)
+            finalSubPrice = plan.price; 
+            finalSubPriceUnit = 'miesiąc (płatne rocznie)'; 
         } else {
             // Cena miesięczna (wyższa, bez oszczędności)
-            finalPrice = plan.monthlyPrice; // np. 40
+            finalPrice = plan.monthlyPrice; 
             finalPeriod = 'miesiąc (płatne co miesiąc)';
             finalSavings = null;
+            finalSubPrice = undefined; 
+            finalSubPriceUnit = undefined; 
         }
     }
+    // Pakiet Wdrożeniowy (jednorazowy) pozostaje bez zmian
 
     return {
       price: finalPrice,
       period: finalPeriod,
       savings: finalSavings,
-      // Przekazuję nowe opcjonalne pola
-      subPrice: finalSubPrice,
-      subPriceUnit: finalSubPriceUnit,
+      subPrice: finalSubPrice, // Przekazujemy do PriceCard
+      subPriceUnit: finalSubPriceUnit, // Przekazujemy do PriceCard
     };
   };
 
 
   return (
-    // Zmieniam tło na białe i w kontenerze dodajemy ciemne kolory dla motywu Nautil
-    <div className="min-h-screen bg-gray-50 py-16 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-white"> 
         
-        {/* Nagłówek i opis - Zmieniamy kolory na ciemniejsze, żeby pasowały do jasnego tła */}
-        <div className="text-center mb-16">
-          <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl">
-            Wybierz plan idealny dla siebie
-          </h1>
-          <p className="mt-3 max-w-2xl mx-auto text-xl text-gray-600">
-            Pełna kontrola nad Twoimi galeriami. Płać elastycznie - co miesiąc lub oszczędzaj, wybierając płatność roczną.
-          </p>
-        </div>
+        {/* NAGŁÓWEK I LOGO (Punkt 5 i część Punktu 2) */}
+        <header className='container mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8'>
+          <Link href='/'>
+            <img src={'/nautil-logo-czarne.svg'} alt='Logo Nautil' className='h-12 w-auto' />
+          </Link>
+        </header>
 
-        {/* 3. WŁĄCZENIE KOMPONENTU PRZEŁĄCZNIKA - pozostawiamy bez zmian */}
-        <PaymentToggle 
-          currentPeriod={paymentPeriod} 
-          onToggle={setPaymentPeriod}
-        />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+          
+          {/* Nagłówek i opis */}
+          <div className="text-center mb-16">
+            <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl">
+              Wybierz plan idealny dla siebie
+            </h1>
+            <p className="mt-3 max-w-2xl mx-auto text-xl text-gray-500">
+              Pełna kontrola nad Twoimi galeriami. Płać elastycznie - co miesiąc lub oszczędzaj, wybierając płatność roczną.
+            </p>
+          </div>
 
-        {/* Sekcja Kafelków Cennika */}
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-3 items-stretch"> 
-          {pricingData.map((plan) => {
-            const details = getPlanDetails(plan as PricingPlan);
-            return (
-              <PriceCard
-                key={plan.title}
-                title={plan.title}
-                subtitle={plan.subtitle}
-                
-                // Używam dynamicznych wartości
-                price={details.price}
-                period={details.period}
-                savings={details.savings}
-                
-                // Używam nowych, opcjonalnych wartości
-                subPrice={details.subPrice}
-                subPriceUnit={details.subPriceUnit}
-                
-                // Używam stałych wartości
-                priceUnit={plan.priceUnit}
-                features={plan.features}
-                isPrimary={plan.isPrimary}
-                buttonText={plan.buttonText}
-              />
-            );
-          })}
+          {/* PRZEŁĄCZNIK */}
+          <PaymentToggle 
+            currentPeriod={paymentPeriod} 
+            onToggle={setPaymentPeriod} 
+          />
+
+          {/* Sekcja Kafelków Cennika */}
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+            {pricingData.map((plan) => {
+              const details = getPlanDetails(plan as PricingPlan);
+              return (
+                <PriceCard
+                  key={plan.title}
+                  title={plan.title}
+                  subtitle={plan.subtitle}
+                  priceUnit={plan.priceUnit}
+                  features={plan.features}
+                  isPrimary={plan.isPrimary}
+                  buttonText={plan.buttonText}
+                  
+                  // Używamy dynamicznych wartości i nowych propsów
+                  price={details.price} 
+                  period={details.period}
+                  savings={details.savings}
+                  subPrice={details.subPrice} // NOWY PROP
+                  subPriceUnit={details.subPriceUnit} // NOWY PROP
+                />
+              );
+            })}
+          </div>
         </div>
       </div>
-    </div>
   );
 }
