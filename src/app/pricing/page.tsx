@@ -121,7 +121,7 @@ export default function PricingPage() {
 
 
   return (
-    <div className="min-h-screen bg-white"> 
+    <div className="min-h-screen bg-slate-50"> 
         
         {/* NAGŁÓWEK I LOGO (Punkt 5 i część Punktu 2) */}
         <header className='container mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8'>

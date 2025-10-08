@@ -33,8 +33,9 @@ const PriceCard: React.FC<PriceCardProps> = ({
   
   // FIX 3: Poprawa kontrastu - dodajemy wyraźną ramkę i cień dla kart nie-primary
   const primaryClasses = isPrimary
-    ? 'bg-white relative ring-4 ring-blue-500 shadow-xl scale-[1.02] transform transition duration-300 z-10'
-    : 'bg-white shadow-md relative border border-gray-300 hover:shadow-xl hover:scale-[1.01] transform transition duration-300'; 
+    ? 'bg-white relative ring-4 ring-blue-500 shadow-2xl scale-[1.02] transform transition duration-300 z-10'
+    : 'bg-white shadow-xl relative border border-gray-300 hover:shadow-2xl hover:scale-[1.01] transform transition duration-300'; 
+  
   
   // Style przycisków
   const buttonClasses = isPrimary
