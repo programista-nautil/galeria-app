@@ -117,14 +117,27 @@ export default function PricingPage() {
         
         {/* KONTENER WIRTUANY ODPOWIEDZIALNY ZA WYŚRODKOWANIE WSZYSTKIEGO (JAK NA STRONIE GŁÓWNEJ) */}
         <div className='flex-grow container mx-auto'>
-            {/* NAGŁÓWEK Z PADDINGAMI (Punkt 5) 
-              Nie ma tu klasy 'container mx-auto', by unikać podwójnego centrowania.
-            */}
-            <header className='px-4 sm:px-6 lg:px-20 py-6 lg:py-8 shrink-0'>
-                <Link href='/'>
-                    <img src={'/nautil-logo-czarne.svg'} alt='Logo Nautil' className='h-12 w-auto' />
-                </Link>
-            </header>
+				<header className='px-4 sm:px-6 lg:px-8 py-6 lg:py-8 shrink-0 flex justify-between items-center'>
+					{/* Logo po lewej stronie */}
+					<Link href='/'>
+						<img src={'/nautil-logo-czarne.svg'} alt='Logo Nautil' className='h-12 w-auto' />
+					</Link>
+
+					{/* Przycisk cennika po prawej stronie */}
+                    <Link 
+                        href='/' 
+                        className='
+                            px-4 py-2 rounded-xl text-sm font-semibold 
+                            bg-gray-200 text-gray-700 shadow-md border-2 border-gray-200
+                            transition duration-500 ease-in-out transform hover:scale-[1.05] 
+                            hover:bg-[#155DFC] hover:text-white hover:border-[#155DFC] hover:shadow-xl
+                            focus:outline-none focus:ring-2 focus:ring-[#155DFC] focus:ring-offset-4 focus:ring-offset-slate-50'
+                        // ALTERNATYWNY OPIS DLA WCAG
+                        aria-label="Przycisk powrotu do strony głównej"
+                    >
+                        Wróć do strony głównej
+                    </Link>
+				</header>
 
             {/* GŁÓWNA TREŚĆ STRONY (wyśrodkowany cennik) */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
