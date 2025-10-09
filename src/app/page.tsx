@@ -56,10 +56,27 @@ export default async function HomePage() {
 	return (
 		<div className='bg-slate-50 h-screen flex flex-col overflow-hidden'>
 			<div className='flex-grow container mx-auto px-4 sm:px-6 lg:px-8 flex flex-col'>
-				<header className='px-4 sm:px-6 lg:px-8 py-6 lg:py-8 shrink-0'>
+				{/* MODYFIKACJA HEADER: flex justify-between do rozdzielenia loga i przycisku */}
+				<header className='px-4 sm:px-6 lg:px-8 py-6 lg:py-8 shrink-0 flex justify-between items-center'>
+					{/* Logo po lewej stronie */}
 					<Link href='/'>
 						<img src={'/nautil-logo-czarne.svg'} alt='Logo Nautil' className='h-12 w-auto' />
 					</Link>
+
+					{/* Przycisk cennika po prawej stronie */}
+                    <Link 
+                        href='/pricing' 
+                        className='
+                            px-4 py-2 rounded-xl text-sm font-semibold 
+                            bg-gray-200 text-gray-700 shadow-md border-2 border-gray-200
+                            transition duration-500 ease-in-out transform hover:scale-[1.05] 
+                            hover:bg-[#155DFC] hover:text-white hover:border-[#155DFC] hover:shadow-xl
+                            focus:outline-none focus:ring-2 focus:ring-[#155DFC] focus:ring-offset-4 focus:ring-offset-slate-50'
+                        // ALTERNATYWNY OPIS DLA WCAG
+                        aria-label="Sprawdź aktualny cennik"
+                    >
+                        Cennik
+                    </Link>
 				</header>
 				<div className='flex-grow container mx-auto px-4 sm:px-6 lg:px-8 flex flex-col'>
 					<main className='flex-grow grid grid-cols-1 lg:grid-cols-2 gap-16 items-center'>

@@ -120,7 +120,7 @@ export default function PricingPage() {
             {/* NAGŁÓWEK Z PADDINGAMI (Punkt 5) 
               Nie ma tu klasy 'container mx-auto', by unikać podwójnego centrowania.
             */}
-            <header className='px-4 sm:px-6 lg:px-16 py-6 lg:py-8 shrink-0'>
+            <header className='px-4 sm:px-6 lg:px-20 py-6 lg:py-8 shrink-0'>
                 <Link href='/'>
                     <img src={'/nautil-logo-czarne.svg'} alt='Logo Nautil' className='h-12 w-auto' />
                 </Link>
