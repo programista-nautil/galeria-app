@@ -155,15 +155,23 @@ const ContactForm: React.FC = () => {
       ...formData,
       subject: `Zapytanie o ofertę: ${formData.name} jest zainteresowany kontaktem.`,
     };
+    
+        try {
+    const response = await fetch("/api/sendmail", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+    });
 
-    try {
-      // Tu możesz dodać backend później
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setStatus("success");
-      setFormData({ name: "", email: "", phone: "", message: "", consent: false });
+    if (response.ok) {
+        setStatus("success");
+        setFormData({ name: "", email: "", phone: "", message: "", consent: false });
+    } else {
+        setStatus("error");
+    }
     } catch (error) {
-      console.error("Wystąpił błąd sieci:", error);
-      setStatus("error");
+    console.error("Wystąpił błąd sieci:", error);
+    setStatus("error");
     }
   };
 
