@@ -116,12 +116,13 @@ const PriceCard: React.FC<PriceCardProps> = ({
       </div>
 
       {/* Przycisk Akcji */}
-      <a
+      {/*<a
         href="#"
         className={`mt-8 block w-full py-3 px-6 border border-transparent rounded-lg text-center font-medium transition duration-150 ease-in-out ${buttonClasses}`}
       >
         {buttonText}
       </a>
+      */}
     </div>
   );
 };

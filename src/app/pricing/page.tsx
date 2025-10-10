@@ -1,9 +1,10 @@
 "use client"; 
 
-import React, { useState } from 'react';
-import PriceCard from './components/PriceCard';
-import PaymentToggle from './components/PaymentToggle';
-import Link from 'next/link'; 
+import React, { useState } from 'react'; // Import React i useState
+import PriceCard from './components/PriceCard'; // Kafelek cennika
+import PaymentToggle from './components/PaymentToggle'; // Przełącznik okresu płatności
+import ContactForm from './components/ContactForm'; // Formularz kontaktowy
+import Link from 'next/link'; // Link z Next.js
 
 // Definicja danych cennika (używamy Twojej zaktualizowanej wersji)
 const pricingData = [
@@ -26,7 +27,7 @@ const pricingData = [
     buttonText: 'Rozpocznij teraz',
   },
 
-  // 2. PAKIET STANDARD 
+  // 2. PAKIET STANDARD
   {
     title: 'Pakiet STANDARD',
     subtitle: 'Profesjonalizm na Co Dzień. Idealny dla umiarkowanej ilości zdjęć.',
@@ -110,37 +111,35 @@ export default function PricingPage() {
     };
   };
 
-
   return (
     // Główny kontener strony (bg-slate-50)
     <div className="min-h-screen bg-slate-50"> 
         
         {/* KONTENER WIRTUANY ODPOWIEDZIALNY ZA WYŚRODKOWANIE WSZYSTKIEGO (JAK NA STRONIE GŁÓWNEJ) */}
         <div className='flex-grow container mx-auto'>
-				<header className='px-4 sm:px-6 lg:px-8 py-6 lg:py-8 shrink-0 flex justify-between items-center'>
-					{/* Logo po lewej stronie */}
-					<Link href='/'>
-						<img src={'/nautil-logo-czarne.svg'} alt='Logo Nautil' className='h-12 w-auto' />
-					</Link>
+            <header className='px-4 sm:px-6 lg:px-20 py-6 lg:py-8 shrink-0 flex justify-between items-center'>{/* na stronie głównej lg:px-8, dla cennika lg:px-20 */}
+                {/* Logo po lewej stronie */}
+                <Link href='/'>
+                    <img src={'/nautil-logo-czarne.svg'} alt='Logo Nautil' className='h-12 w-auto' />
+                </Link>
 
-					{/* Przycisk cennika po prawej stronie */}
-                    <Link 
-                        href='/' 
-                        className='
-                            px-4 py-2 rounded-xl text-sm font-semibold 
-                            bg-gray-200 text-gray-700 shadow-md border-2 border-gray-200
-                            transition duration-500 ease-in-out transform hover:scale-[1.05] 
-                            hover:bg-[#155DFC] hover:text-white hover:border-[#155DFC] hover:shadow-xl
-                            focus:outline-none focus:ring-2 focus:ring-[#155DFC] focus:ring-offset-4 focus:ring-offset-slate-50'
-                        // ALTERNATYWNY OPIS DLA WCAG
-                        aria-label="Przycisk powrotu do strony głównej"
-                    >
-                        Wróć do strony głównej
-                    </Link>
-				</header>
+                {/* Przycisk cennika po prawej stronie */}
+                <Link 
+                    href='/' 
+                    className='
+                        px-4 py-2 rounded-xl text-sm font-semibold 
+                        bg-gray-200 text-gray-700 shadow-md border-2 border-gray-200
+                        transition duration-500 ease-in-out transform hover:scale-[1.05] 
+                        hover:bg-[#155DFC] hover:text-white hover:border-[#155DFC] hover:shadow-xl
+                        focus:outline-none focus:ring-2 focus:ring-[#155DFC] focus:ring-offset-4 focus:ring-offset-slate-50'
+                    aria-label="Przycisk powrotu do strony głównej"
+                >
+                    Wróć do strony głównej
+                </Link>
+            </header>
 
             {/* GŁÓWNA TREŚĆ STRONY (wyśrodkowany cennik) */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-32">
               
                 {/* Nagłówek i opis */}
                 <div className="text-center mb-16">
@@ -179,6 +178,10 @@ export default function PricingPage() {
                             />
                         );
                     })}
+                </div>
+                {/* INTEGRACJA FORMULARZA */}
+                <div className="mt-20"> {/* Duży margines górny, żeby odsunąć formularz od kafelków */}
+                    <ContactForm />
                 </div>
             </div>
         </div>
