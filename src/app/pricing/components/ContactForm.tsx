@@ -80,7 +80,7 @@ const ContactForm: React.FC = () => {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errors, setErrors] = useState<FormErrors>({});
 
-  // 🔹 Walidacja pojedynczego pola
+  // Walidacja pojedynczego pola
   const validateField = (name: keyof FormData, value: string | boolean): string | null => {
     if (name === "consent") return value ? null : "Musisz wyrazić zgodę na przetwarzanie danych.";
     if (name === "name" && typeof value === "string" && value.trim().length > 0 && value.trim().length < 2)
@@ -167,7 +167,7 @@ const ContactForm: React.FC = () => {
     }
   };
 
-  // 🔹 JSX formularza
+  // JSX formularza
   return (
     <form
       onSubmit={handleSubmit}
@@ -179,7 +179,7 @@ const ContactForm: React.FC = () => {
 
       {status === "success" && (
         <p className="mb-4 text-center text-sm font-semibold text-green-600 bg-green-50 p-2 rounded-lg">
-          🚀 Wiadomość wysłana! Potwierdzenie otrzymasz na maila.
+          ✅ Wiadomość wysłana! Potwierdzenie otrzymasz na maila.
         </p>
       )}
       {status === "error" && (
