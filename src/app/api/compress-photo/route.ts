@@ -33,6 +33,7 @@ export async function POST(request: Request) {
 		const imageBuffer = await streamToBuffer(response.data as Readable)
 
 		const compressedBuffer = await sharp(imageBuffer)
+			.rotate()
 			.resize(1920, 1920, { fit: 'inside', withoutEnlargement: true })
 			.jpeg({ quality: 80, progressive: true })
 			.toBuffer()

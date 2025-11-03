@@ -40,6 +40,7 @@ export async function startBackgroundCompression(albumId: string) {
 			const imageBuffer = await streamToBuffer(photoStreamRes.data as Readable)
 
 			const compressedBuffer = await sharp(imageBuffer)
+				.rotate()
 				.resize(1920, 1920, { fit: 'inside', withoutEnlargement: true })
 				.jpeg({ quality: 80, progressive: true })
 				.toBuffer()
