@@ -1,7 +1,9 @@
-'use client'
+// src/app/album/[albumId]/components/PhotoGrid.tsx
 
+'use client'
 import { useState, useEffect, useCallback } from 'react'
 import { toast } from 'sonner'
+import { useRouter } from 'next/navigation' // Dodano useRouter do odświeżania metadanych w tle
 
 interface Photo {
 	id: string
@@ -21,18 +23,50 @@ const PlayIcon = () => (
 	</div>
 )
 
-export function PhotoGrid({ photos, folderId }: { photos: Photo[]; folderId: string }) {
+// Nowa ikona obracania
+const RotateIcon = () => (
+	<svg
+		xmlns='http://www.w3.org/2000/svg'
+		fill='none'
+		viewBox='0 0 24 24'
+		strokeWidth={1.5}
+		stroke='currentColor'
+		className='w-5 h-5'>
+		<path
+			strokeLinecap='round'
+			strokeLinejoin='round'
+			d='M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99'
+		/>
+	</svg>
+)
+
+export function PhotoGrid({ photos: initialPhotos, folderId }: { photos: Photo[]; folderId: string }) {
+	// Używamy lokalnego stanu dla zdjęć, aby móc aktualizować URL-e po obrocie
+	const [photos, setPhotos] = useState<Photo[]>(initialPhotos)
 	const [isSettingCover, setIsSettingCover] = useState(false)
-	const [isLoading, setIsLoading] = useState<string | null>(null)
+	const [loadingPhotoIds, setLoadingPhotoIds] = useState<Set<string>>(new Set())
+	const router = useRouter()
 
 	const initialCoverId = photos.find(p => p.name.includes('_cover'))?.id
-
 	const [currentCoverId, setCurrentCoverId] = useState<string | undefined>(initialCoverId)
-
 	const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null)
 
-	//const [isCompressing, setIsCompressing] = useState(false)
-	//const [compressionProgress, setCompressionProgress] = useState({ current: 0, total: 0 })
+	// Aktualizacja stanu gdy przychodzą nowe propsy (np. po nawigacji)
+	useEffect(() => {
+		setPhotos(initialPhotos)
+	}, [initialPhotos])
+
+	const togglePhotoLoading = (id: string, isLoading: boolean) => {
+		setLoadingPhotoIds(prev => {
+			const newSet = new Set(prev)
+			if (isLoading) {
+				newSet.add(id)
+			} else {
+				newSet.delete(id)
+			}
+			return newSet
+		})
+	}
 
 	const handleOpenModal = (index: number) => {
 		setSelectedPhotoIndex(index)
@@ -76,9 +110,10 @@ export function PhotoGrid({ photos, folderId }: { photos: Photo[]; folderId: str
 		setCurrentCoverId(cover?.id)
 	}, [photos])
 
+	// ... (zachowana logika handleSetCover - bez zmian) ...
 	const handleSetCover = async (fileId: string) => {
 		const previousCoverId = currentCoverId
-		setIsLoading(fileId)
+		togglePhotoLoading(fileId, true)
 		setCurrentCoverId(fileId)
 
 		try {
@@ -94,61 +129,55 @@ export function PhotoGrid({ photos, folderId }: { photos: Photo[]; folderId: str
 
 			toast.success(`Ustawiono nową okładkę dla albumu!`)
 			setIsSettingCover(false)
+			router.refresh() // Odśwież dane serwera
 		} catch (error: unknown) {
 			console.error(error)
 			toast.error('Wystąpił błąd podczas ustawiania okładki.')
 			setCurrentCoverId(previousCoverId)
 		} finally {
-			setIsLoading(null)
+			togglePhotoLoading(fileId, false)
 		}
 	}
 
-	// const handleStartCompression = async () => {
-	// 	setIsCompressing(true)
-	// 	setCompressionProgress({ current: 0, total: 0 })
-	// 	toast.info('Pobieranie listy zdjęć do kompresji...')
+	// Nowa funkcja do obracania zdjęć
+	const handleRotatePhoto = async (fileId: string) => {
+		if (loadingPhotoIds.has(fileId)) return
+		togglePhotoLoading(fileId, true)
+		const toastId = toast.loading('Obracanie zdjęcia...')
 
-	// 	try {
-	// 		const res = await fetch(`/api/uncompressed-photos?folderId=${folderId}`)
-	// 		if (!res.ok) throw new Error('Błąd serwera przy pobieraniu listy zdjęć.')
-	// 		const photosToCompress = await res.json()
+		try {
+			const response = await fetch('/api/rotate-photo', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ fileId }),
+			})
 
-	// 		if (photosToCompress.length === 0) {
-	// 			toast.success('Wszystkie zdjęcia w tym albumie są już skompresowane!')
-	// 			setIsCompressing(false)
-	// 			return
-	// 		}
+			if (!response.ok) {
+				throw new Error('Rotation failed')
+			}
 
-	// 		setCompressionProgress({ current: 0, total: photosToCompress.length })
-	// 		toast.info(`Rozpoczynanie kompresji ${photosToCompress.length} zdjęć.`)
+			// Aktualizujemy URL zdjęcia w lokalnym stanie, dodając timestamp, żeby wymusić odświeżenie cache przeglądarki
+			setPhotos(prevPhotos =>
+				prevPhotos.map(p => {
+					if (p.id === fileId && p.thumbnailLink) {
+						const separator = p.thumbnailLink.includes('?') ? '&' : '?'
+						return {
+							...p,
+							thumbnailLink: `${p.thumbnailLink}${separator}t=${Date.now()}`,
+						}
+					}
+					return p
+				})
+			)
 
-	// 		for (const photo of photosToCompress) {
-	// 			try {
-	// 				await fetch('/api/compress-photo', {
-	// 					method: 'POST',
-	// 					headers: { 'Content-Type': 'application/json' },
-	// 					body: JSON.stringify({ fileId: photo.id, fileName: photo.name }),
-	// 				})
-	// 				setCompressionProgress(prev => ({ ...prev, current: prev.current + 1 }))
-	// 			} catch (err) {
-	// 				console.error(`Nie udało się skompresować zdjęcia: ${photo.name}`, err)
-	// 				toast.error(`Błąd podczas kompresji zdjęcia ${photo.name}`)
-	// 			}
-	// 		}
-	// 		toast.success(`Kompresja zakończona! Zoptymalizowano ${photosToCompress.length} zdjęć.`)
-	// 	} catch (error: unknown) {
-	// 		let errorMessage = 'Wystąpił nieoczekiwany błąd.'
-
-	// 		if (error instanceof Error) {
-	// 			errorMessage = error.message
-	// 		}
-
-	// 		toast.error(errorMessage)
-	// 		console.error('Błąd podczas procesu kompresji:', error)
-	// 	} finally {
-	// 		setIsCompressing(false)
-	// 	}
-	// }
+			toast.success('Zdjęcie obrócone!', { id: toastId })
+		} catch (error) {
+			console.error(error)
+			toast.error('Nie udało się obrócić zdjęcia.', { id: toastId })
+		} finally {
+			togglePhotoLoading(fileId, false)
+		}
+	}
 
 	return (
 		<div>
@@ -164,58 +193,85 @@ export function PhotoGrid({ photos, folderId }: { photos: Photo[]; folderId: str
 						}`}>
 						{isSettingCover ? 'Anuluj' : 'Zmień okładkę'}
 					</button>
-					{/* <button
-						onClick={handleStartCompression}
-						disabled={isCompressing}
-						className='px-4 py-2 rounded-md text-sm font-semibold transition-colors bg-green-600 text-white hover:bg-green-700 disabled:bg-slate-400 disabled:cursor-wait'>
-						{isCompressing
-							? `Kompresowanie... ${compressionProgress.current}/${compressionProgress.total}`
-							: 'Skompresuj zdjęcia'}
-					</button> */}
 				</div>
 			</div>
 
 			<div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4'>
-				{photos.map((photo, index) => (
-					<div key={photo.id} className='group relative' onClick={() => handleOpenModal(index)}>
-						<div className='aspect-square w-full overflow-hidden rounded-lg bg-slate-100'>
-							{photo.thumbnailLink && (
-								<img src={photo.thumbnailLink} alt={photo.name} className='w-full h-full object-cover' />
-							)}
-							{photo.videoMediaMetadata && <PlayIcon />}
-						</div>
-						{isSettingCover && (
-							<div className='absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity'>
+				{photos.map((photo, index) => {
+					const isPhotoLoading = loadingPhotoIds.has(photo.id)
+
+					return (
+						<div key={photo.id} className='group relative cursor-pointer' onClick={() => handleOpenModal(index)}>
+							<div className='aspect-square w-full overflow-hidden rounded-lg bg-slate-100 relative'>
+								{photo.thumbnailLink && (
+									<img
+										src={photo.thumbnailLink}
+										alt={photo.name}
+										className={`w-full h-full object-cover transition-opacity duration-300 ${
+											isPhotoLoading ? 'opacity-50' : 'opacity-100'
+										}`}
+									/>
+								)}
+								{photo.videoMediaMetadata && <PlayIcon />}
+
+								{/* Spinner ładowania podczas obracania */}
+								{isPhotoLoading && (
+									<div className='absolute inset-0 flex items-center justify-center'>
+										<div className='w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin'></div>
+									</div>
+								)}
+							</div>
+
+							{/* Przycisk obracania - widoczny tylko na hover i jeśli to nie wideo i nie tryb ustawiania okładki */}
+							{!photo.videoMediaMetadata && !isSettingCover && !isPhotoLoading && (
 								<button
 									onClick={e => {
 										e.stopPropagation()
-										handleSetCover(photo.id)
+										handleRotatePhoto(photo.id)
 									}}
-									disabled={isLoading === photo.id || currentCoverId === photo.id || !!photo.videoMediaMetadata}
-									className='px-3 py-1.5 bg-white text-slate-900 text-xs font-bold rounded-full disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 transition-transform'>
-									{isLoading === photo.id
-										? 'Ustawianie...'
-										: currentCoverId === photo.id
-										? 'To jest okładka'
-										: photo.videoMediaMetadata
-										? 'To jest film'
-										: 'Ustaw jako okładkę'}
+									className='absolute bottom-2 right-2 p-2 bg-white/90 text-slate-700 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-blue-50 hover:text-blue-600 z-10'
+									title='Obróć o 90° w prawo'>
+									<RotateIcon />
 								</button>
-							</div>
-						)}
-						{currentCoverId === photo.id && (
-							<div className='absolute top-2 right-2 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full pointer-events-none shadow-lg'>
-								Okładka
-							</div>
-						)}
-					</div>
-				))}
+							)}
+
+							{/* Overlay ustawiania okładki */}
+							{isSettingCover && (
+								<div className='absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg'>
+									<button
+										onClick={e => {
+											e.stopPropagation()
+											handleSetCover(photo.id)
+										}}
+										disabled={isPhotoLoading || currentCoverId === photo.id || !!photo.videoMediaMetadata}
+										className='px-3 py-1.5 bg-white text-slate-900 text-xs font-bold rounded-full disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 transition-transform'>
+										{isPhotoLoading
+											? 'Ustawianie...'
+											: currentCoverId === photo.id
+											? 'To jest okładka'
+											: photo.videoMediaMetadata
+											? 'To jest film'
+											: 'Ustaw jako okładkę'}
+									</button>
+								</div>
+							)}
+
+							{currentCoverId === photo.id && (
+								<div className='absolute top-2 right-2 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full pointer-events-none shadow-lg z-10'>
+									Okładka
+								</div>
+							)}
+						</div>
+					)
+				})}
 			</div>
 
+			{/* Modal - zachowany bez większych zmian, używa photos ze stanu */}
 			{selectedPhotoIndex !== null && (
 				<div
 					className='fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center'
 					onClick={handleCloseModal}>
+					{/* ... (przyciski nawigacji i zamknięcia bez zmian) ... */}
 					<button
 						className='absolute top-4 right-4 text-white/70 hover:text-white transition-colors z-50'
 						onClick={handleCloseModal}
@@ -267,7 +323,9 @@ export function PhotoGrid({ photos, folderId }: { photos: Photo[]; folderId: str
 						</svg>
 					</button>
 
-					<div className='relative w-full h-full max-w-screen-lg max-h-screen p-12' onClick={e => e.stopPropagation()}>
+					<div
+						className='relative w-full h-full max-w-screen-lg max-h-screen p-12 flex items-center justify-center'
+						onClick={e => e.stopPropagation()}>
 						{photos[selectedPhotoIndex]?.videoMediaMetadata ? (
 							<video
 								src={`/api/stream/${photos[selectedPhotoIndex].id}`}
@@ -278,9 +336,9 @@ export function PhotoGrid({ photos, folderId }: { photos: Photo[]; folderId: str
 							</video>
 						) : (
 							<img
-								src={photos[selectedPhotoIndex].thumbnailLink!.replace(/=s\d+/, '=s1600')}
+								src={photos[selectedPhotoIndex].thumbnailLink!.replace(/=s\d+/, '=s1600')} // Używamy zmodyfikowanego linku ze stanu
 								alt={photos[selectedPhotoIndex].name}
-								className='w-full h-full object-contain'
+								className='w-full h-full object-contain max-h-[85vh]'
 							/>
 						)}
 					</div>
@@ -289,3 +347,4 @@ export function PhotoGrid({ photos, folderId }: { photos: Photo[]; folderId: str
 		</div>
 	)
 }
+// =========KONIEC ZMIANY=========

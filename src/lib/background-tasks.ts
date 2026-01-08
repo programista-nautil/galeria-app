@@ -42,6 +42,7 @@ export async function startBackgroundCompression(albumId: string) {
 			const compressedBuffer = await sharp(imageBuffer)
 				.rotate()
 				.resize(1920, 1920, { fit: 'inside', withoutEnlargement: true })
+				.withMetadata()
 				.jpeg({ quality: 80, progressive: true })
 				.toBuffer()
 
